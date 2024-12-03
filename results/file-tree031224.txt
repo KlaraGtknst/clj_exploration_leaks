@@ -1,0 +1,49 @@
+ DIR: Downloads
+   DIR: Antrag_Foerderung
+     FILE: HandbuchBewerbung.pdf
+     FILE: Checkliste.pdf
+   DIR: DB_Tickets
+     FILE: DB_Ticket_Kassel_Ulm.pdf
+     FILE: DB_Ticket_Ulm_Kassel.pdf
+   FILE: Ubung_6_CDA.note
+   FILE: .DS_Store
+   FILE: ~$Preasi IntroABM.pptx
+   FILE: ~$tivationsschreiben_Warschau.docx
+   FILE: .localized
+   FILE: Bildschirmfoto 2024-12-03 um 09.41.12.png
+   FILE: Image Generation System Demo 2.pdf
+   FILE: Image Generation System Demo 3.pdf
+   DIR: KDE_Projekt
+     FILE: Topic space trajectories.pdf
+     FILE: .DS_Store
+     FILE: intents.dat
+     FILE: GI_vote-receipt-a2755c4ed9.pdf
+     DIR: pcbo-amai
+       FILE: pcbo.7
+       FILE: pcbo-linux-i686-static
+       FILE: Makefile
+       FILE: pcbo-linux-sparc64-static
+       FILE: README.html
+       FILE: pcbo-windows-i686-static.exe
+       FILE: pcbo
+       FILE: pcbo.c
+       FILE: README.txt
+       FILE: COPYRIGHT
+       FILE: pcbo-linux-x86_64-static
+     FILE: pcbo-amai.zip
+     FILE: CbO_1993.pdf
+     FILE: Bildschirmfoto 2024-11-24 um 22.26.17.png
+   FILE: Ubung_6_CDA.pdf
+   FILE: sales-transactions-dataset-weekly_archive.torrent
+   FILE: Studienstiftung_Weihnachtsquiz.png
+   FILE: Bildschirmfoto 2024-12-03 um 20.26.17.png
+   FILE: Image Generation System Demo.pdf
+   FILE: Sales_Transactions_Dataset_Weekly.csv
+   DIR: .idea
+     FILE: Downloads.iml
+     DIR: inspectionProfiles
+       FILE: Project_Default.xml
+     FILE: .gitignore
+     FILE: workspace.xml
+     FILE: modules.xml
+     FILE: misc.xml

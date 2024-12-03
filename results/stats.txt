@@ -1,0 +1,178 @@
+file_name
+  Ubung_6_CDA.pdf: 1
+  KDE_Projekt: 1
+  pcbo.7: 1
+  Topic space trajectories.pdf: 1
+  pcbo-linux-x86_64-static: 1
+  workspace.xml: 1
+  inspectionProfiles: 1
+  Antrag_Foerderung: 1
+  pcbo-windows-i686-static.exe: 1
+  pcbo-linux-sparc64-static: 1
+  Downloads.iml: 1
+  Project_Default.xml: 1
+  pcbo-amai.zip: 1
+  Sales_Transactions_Dataset_Weekly.csv: 1
+  ~$tivationsschreiben_Warschau.docx: 1
+  Bildschirmfoto 2024-11-24 um 22.26.17.png: 1
+  .DS_Store: 2
+  Makefile: 1
+  DB_Ticket_Kassel_Ulm.pdf: 1
+  Image Generation System Demo 3.pdf: 1
+  Bildschirmfoto 2024-12-03 um 20.26.17.png: 1
+  sales-transactions-dataset-weekly_archive.torrent: 1
+  pcbo: 1
+  CbO_1993.pdf: 1
+  intents.dat: 1
+  pcbo-amai: 1
+  .idea: 1
+  DB_Tickets: 1
+  Bildschirmfoto 2024-12-03 um 09.41.12.png: 1
+  README.html: 1
+  Ubung_6_CDA.note: 1
+  README.txt: 1
+  ~$Preasi IntroABM.pptx: 1
+  .localized: 1
+  pcbo.c: 1
+  Studienstiftung_Weihnachtsquiz.png: 1
+  .gitignore: 1
+  DB_Ticket_Ulm_Kassel.pdf: 1
+  Image Generation System Demo.pdf: 1
+  modules.xml: 1
+  Image Generation System Demo 2.pdf: 1
+  HandbuchBewerbung.pdf: 1
+  misc.xml: 1
+  pcbo-linux-i686-static: 1
+  Downloads: 1
+  GI_vote-receipt-a2755c4ed9.pdf: 1
+  COPYRIGHT: 1
+  Checkliste.pdf: 1
+
+len
+  5566: 1
+  570136: 1
+  174362: 1
+  1859: 1
+  270: 1
+  2394406: 1
+  52072: 1
+  560320: 1
+  5968: 1
+  76100: 1
+  96: 1
+  2921138: 1
+  162: 1
+  2177942: 1
+  546584: 1
+  17987: 1
+  10485: 1
+  1176351: 1
+  1318: 1
+  784230: 1
+  14336: 1
+  1263751: 1
+  176: 1
+  128: 2
+  284: 1
+  2498130: 1
+  2812607: 1
+  6148: 2
+  197798: 1
+  640: 1
+  320: 1
+  416: 1
+  0: 1
+  129932: 1
+  324: 1
+  165: 1
+  6791: 1
+  1191: 1
+  4873: 1
+  580425: 1
+  256: 1
+  4042042: 1
+  933925: 1
+  57489: 1
+  175773: 1
+  18121: 1
+  317399: 1
+
+type
+  pcbo-linux-x86_64-static: 1
+  xml: 4
+  pdf: 11
+  pcbo-linux-sparc64-static: 1
+  DS_Store: 2
+  csv: 1
+  Makefile: 1
+  exe: 1
+  note: 1
+  pcbo: 1
+  7: 1
+  dat: 1
+  pptx: 1
+  dir: 7
+  gitignore: 1
+  png: 4
+  txt: 1
+  localized: 1
+  iml: 1
+  html: 1
+  torrent: 1
+  zip: 1
+  pcbo-linux-i686-static: 1
+  c: 1
+  docx: 1
+  COPYRIGHT: 1
+
+file_path
+  /Users/klara/Downloads/Studienstiftung_Weihnachtsquiz.png: 1
+  /Users/klara/Downloads/.idea/.gitignore: 1
+  /Users/klara/Downloads/Image Generation System Demo.pdf: 1
+  /Users/klara/Downloads/KDE_Projekt/pcbo-amai/pcbo: 1
+  /Users/klara/Downloads/.idea/inspectionProfiles: 1
+  /Users/klara/Downloads/Bildschirmfoto 2024-12-03 um 20.26.17.png: 1
+  /Users/klara/Downloads/KDE_Projekt/CbO_1993.pdf: 1
+  /Users/klara/Downloads/KDE_Projekt/intents.dat: 1
+  /Users/klara/Downloads/.localized: 1
+  /Users/klara/Downloads: 1
+  /Users/klara/Downloads/Image Generation System Demo 2.pdf: 1
+  /Users/klara/Downloads/Ubung_6_CDA.pdf: 1
+  /Users/klara/Downloads/KDE_Projekt/pcbo-amai/README.txt: 1
+  /Users/klara/Downloads/KDE_Projekt: 1
+  /Users/klara/Downloads/Antrag_Foerderung/HandbuchBewerbung.pdf: 1
+  /Users/klara/Downloads/Antrag_Foerderung/Checkliste.pdf: 1
+  /Users/klara/Downloads/KDE_Projekt/pcbo-amai/pcbo-linux-sparc64-static: 1
+  /Users/klara/Downloads/KDE_Projekt/Bildschirmfoto 2024-11-24 um 22.26.17.png: 1
+  /Users/klara/Downloads/Ubung_6_CDA.note: 1
+  /Users/klara/Downloads/.DS_Store: 1
+  /Users/klara/Downloads/KDE_Projekt/.DS_Store: 1
+  /Users/klara/Downloads/.idea: 1
+  /Users/klara/Downloads/KDE_Projekt/pcbo-amai/pcbo-linux-i686-static: 1
+  /Users/klara/Downloads/KDE_Projekt/pcbo-amai.zip: 1
+  /Users/klara/Downloads/Bildschirmfoto 2024-12-03 um 09.41.12.png: 1
+  /Users/klara/Downloads/KDE_Projekt/pcbo-amai/README.html: 1
+  /Users/klara/Downloads/KDE_Projekt/pcbo-amai: 1
+  /Users/klara/Downloads/KDE_Projekt/pcbo-amai/Makefile: 1
+  /Users/klara/Downloads/sales-transactions-dataset-weekly_archive.torrent: 1
+  /Users/klara/Downloads/KDE_Projekt/pcbo-amai/pcbo-linux-x86_64-static: 1
+  /Users/klara/Downloads/KDE_Projekt/pcbo-amai/pcbo.7: 1
+  /Users/klara/Downloads/KDE_Projekt/pcbo-amai/pcbo.c: 1
+  /Users/klara/Downloads/Antrag_Foerderung: 1
+  /Users/klara/Downloads/.idea/inspectionProfiles/Project_Default.xml: 1
+  /Users/klara/Downloads/Sales_Transactions_Dataset_Weekly.csv: 1
+  /Users/klara/Downloads/Image Generation System Demo 3.pdf: 1
+  /Users/klara/Downloads/.idea/modules.xml: 1
+  /Users/klara/Downloads/KDE_Projekt/pcbo-amai/pcbo-windows-i686-static.exe: 1
+  /Users/klara/Downloads/~$Preasi IntroABM.pptx: 1
+  /Users/klara/Downloads/KDE_Projekt/pcbo-amai/COPYRIGHT: 1
+  /Users/klara/Downloads/KDE_Projekt/GI_vote-receipt-a2755c4ed9.pdf: 1
+  /Users/klara/Downloads/DB_Tickets/DB_Ticket_Ulm_Kassel.pdf: 1
+  /Users/klara/Downloads/.idea/misc.xml: 1
+  /Users/klara/Downloads/.idea/workspace.xml: 1
+  /Users/klara/Downloads/.idea/Downloads.iml: 1
+  /Users/klara/Downloads/DB_Tickets: 1
+  /Users/klara/Downloads/~$tivationsschreiben_Warschau.docx: 1
+  /Users/klara/Downloads/DB_Tickets/DB_Ticket_Kassel_Ulm.pdf: 1
+  /Users/klara/Downloads/KDE_Projekt/Topic space trajectories.pdf: 1
+
