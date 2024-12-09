@@ -8,13 +8,15 @@
 (let [file_path "/Users/klara/Downloads"]                                ; TODO: change to your file path
   ;(dir/save-file-tree file_path save_dir)
 (metadata/write-metadata-csv (metadata/find_metadata file_path) save_dir "metadata.csv")
-(dir/save-file-tree file_path save_dir "file-tree031224.txt")
+(dir/save-file-tree file_path save_dir "file-tree081224.txt")
 )
 
 ; displays metadata as multi-valued context
 (let [file_path (str save_dir "metadata.csv")
       ctx_map (csv2ctx/extract-obj-attr-inc file_path)]
-  (println (mv_contexts/make-mv-context-from-matrix (:objects ctx_map) (:attributes ctx_map) (:incidence ctx_map))))
+  (println "Multi-valued" (mv_contexts/make-mv-context-from-matrix (:objects ctx_map) (:attributes ctx_map) (:incidence ctx_map)))
+  (println "Binary-valued" (csv2ctx/display-bin-ctx (csv2ctx/extract-obj-attr-inc-binary file_path))))
+
 
 ; save statistics (frequencies) of data in .CSV and .txt files
 (let [metadata_path (str save_dir "metadata.csv")
