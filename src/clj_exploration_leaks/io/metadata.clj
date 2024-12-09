@@ -9,6 +9,8 @@
 ;; This file provides methods to extract metadata (file type, file path, file size) from all files in a directory (recursively).
 
 (defn save2csv
+  "Saves data to save_path with name optionally specified.
+  If out_filename is not specified, it is metadata.csv."
   ([^String save_path ^String out_filename data]
     (fileSystem/exists_or_create (java.io.File. save_path)) ; Create save dir if not existing
     (with-open [writer (io/writer (str save_path "/" out_filename))]
@@ -18,25 +20,29 @@
     (save2csv save_path "metadata.csv" data))
   )
 
-#_(let [data [["Name" "Age" "City"]
-              ["Alice" 30 "New York"]
-              ["Bob" 25 "Los Angeles"]
-              ["Charlie" 35 "Chicago"]]]
-    (save2csv "sample_results/test" data))
+
+(defn get-parent-dir
+  [file-instance]
+  (let [parent (.getParentFile file-instance)]
+  (if (nil? parent)
+    "/"
+    (.getName parent)
+    )))
 
 (defn find_metadata
   "This functions returns a sequence of maps which contain metadata for all files in the input directory.
   The function also works if the input is a file and not a directory.
-  Metadata include file-name and file type.
+  Metadata include file-name, parent directory and file type.
   The size of a directory reflects the space of disk allocated to the directory structure and its metadata,
   not the files it contains."
   [^String target_file_name]
   (let [file-instance (java.io.File. target_file_name)]     ; Cast to file object
     (if (.exists file-instance)                                   ; Check if the input file exists
       (let [metadata (for [file-name (file-seq file-instance)]   ; Construct metadata: sequence of maps
-                       ; maps with keys :file_name, :file_path, :len & :type
+                       ; maps with keys :file_name, :file_path, :parent_dir :len & :type
                        {:file_name (.getName file-name)
                         :file_path (.getAbsolutePath file-name)
+                        :parent_dir (get-parent-dir file-name)
                         :len (.length file-name)
                         :type (if (.isDirectory file-name)
                                "dir"                      ; If directory
@@ -61,7 +67,7 @@
   "
   ([row-data save_path file_name]
   (fileSystem/exists_or_create (java.io.File. save_path))
-  (let [columns [:file_name :len :type :file_path]          ; Vector called columns with 4 keywords
+  (let [columns [:file_name :len :type :file_path :parent_dir]          ; Vector called columns with 4 keywords
         headers (map name columns)                          ; Name function returns the string version of the keywords of the columns vector
         ; Lambda/ anonymous function: #(.); create function without explicitly naming it
         ; % is placeholder for a row from row-data passed to the lambda function
@@ -82,6 +88,8 @@
 
 
 (defn get-stats
+  "Returns a map which contains individual values and their counts, as well as a total count of all entries.
+  If no column number is specified, a map containing all column's statistics is returned."
   ;; First arity: Takes `csv-path` and `column-number`
   ([^String csv-path ^Integer column-number]
    (let [file-instance (java.io.File. csv-path)]  ; Cast to file object
@@ -155,7 +163,7 @@ The text-file is saved as output-path. Hence, include the filename with .txt ext
 
 
 ;(println (find_metadata "src"))
-#_(write-metadata-csv (find_metadata "src"))
+;(write-metadata-csv (find_metadata "src"))
 ;(println (get-stats "sample_results/test1510/metadata.csv"))
 ;(println (write-stats2txt (get-stats "sample_results/test1510/metadata.csv") "sample_results/stats.txt"))
 ;(println (create-column-stats-files (get-stats "sample_results/test1510/metadata.csv") "sample_results/"))
