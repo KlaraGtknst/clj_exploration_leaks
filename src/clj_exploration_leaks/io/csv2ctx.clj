@@ -1,7 +1,11 @@
 (ns clj-exploration-leaks.io.csv2ctx
   (:require [clojure.data.csv :as csv]
             [clojure.java.io :as io]
-            [conexp.fca.contexts :as contexts]))
+            [conexp.fca.contexts :as contexts]
+            [conexp.fca.lattices :as lattices]
+            [conexp.gui.draw :as draw]
+            [conexp.io.contexts :as io-context]
+            ))
 
 ;; this file provides methods to cast a csv file to a context object & display it using the library conexp-clj
 
@@ -98,6 +102,61 @@
         (println bin-ctx-res))))
 
 
+(defn obtain-bin-ctx
+  ([bin-ctxs-seq]
+   (if (instance? clojure.lang.LazySeq bin-ctxs-seq)
+     ;; bin-ctxs-seq is a lazy sequence of binary contexts
+     (doseq [bin-ctx bin-ctxs-seq]
+       (display-bin-ctx bin-ctx)))
+   ;; bin-ctxs-seq is only one binary context
+   (let [bin-ctx-res (contexts/make-context-from-matrix (:objects bin-ctxs-seq) (:attributes bin-ctxs-seq) (:incidence bin-ctxs-seq))]
+     bin-ctx-res)))
+
+
+(defn display-lattice
+  [lattice]
+  (println (lattices/lattice-atoms lattice))
+  (draw/draw-lattice lattice)
+  lattice)
+
+(defn compute-concept-lattice
+  [bin-ctx]
+  (let [lattice (lattices/concept-lattice bin-ctx)]
+    (display-lattice lattice)))
+
+(defn compute-titanic-iceberg-lattice
+  [bin-ctx]
+  ;; min-support = relative portion of objects of derivative of intent in total set of objects
+  (display-lattice (lattices/iceberg-lattice bin-ctx 0.1))  ; paper: 0.03
+  )
+
+
+
+(defn zero-one-csv2-map
+  "Extracts attributes (first row) and objects (first column).
+  Returns also a map which contains attributes, objects and incidence.
+  Input csv file is expected to look like:
+  ,0,1,2,3,4
+  0,0,0,0,1,0
+  0,0,1,0,0,1"
+  ([^String filepath]
+   (let [file-instance (io/file filepath)]  ; Cast to file object
+     (if (.exists file-instance)               ; Check if the input file exists
+       (with-open [reader (io/reader filepath)]
+         (let [data (doall (csv/read-csv reader))]
+           (let [all-but-first-row (rest data)
+                 first-column (map first all-but-first-row)   ; Extract the first column
+                 first-row (rest (first data)) ; Extract first row without leading empty cell
+                 incidence-matrix (vec (map #(rest %) all-but-first-row))]; collection of attributes, whose elements are mapped to function values
+             {:objects (map #(str "doc_" %) first-column)                         ; documents
+              :attributes (map #(str "topic_" %) first-row)                        ; topics
+              :incidence (vec (map #(Integer/parseInt %) (apply concat incidence-matrix)) )})))  ;; Return as a map
+
+       (do
+         (println "File not found!")
+         nil)))))  ;; Return nil if the file is not found
+
+
 
 
 
@@ -106,3 +165,19 @@
 #_(println (extract-obj-attr-inc-binary "sample_results/test1510/metadata.csv"))
 #_(println (type (extract-obj-attr-inc-binary "sample_results/test1510/metadata.csv" 2)))
 #_(display-bin-ctx (extract-obj-attr-inc-binary "sample_results/test1510/metadata.csv"))
+;(println (extract-obj-attr-inc-binary "sample_results/test1911/metadata.csv" 4))
+;(println (obtain-bin-ctx (extract-obj-attr-inc-binary "sample_results/test1911/metadata.csv" 4)))
+;(println (compute-concept-lattice (obtain-bin-ctx (extract-obj-attr-inc-binary "sample_results/test1911/metadata.csv" 4))))
+;(println "Iceberg")
+;(println (compute-titanic-iceberg-lattice (obtain-bin-ctx (extract-obj-attr-inc-binary "sample_results/test1911/metadata.csv" 4))))
+
+;(let [path2uni-data "/Users/klara/Developer/Uni/WiSe2425/text_topic/results/incidences/thres_row_norm_doc_topic_incidence.csv"
+;      map-from-zero-one-csv (zero-one-csv2-map path2uni-data)
+;      first-n-docs (count (:objects map-from-zero-one-csv)) ; 10 produces at most 18 elements in lattice
+;      objects (take first-n-docs (:objects map-from-zero-one-csv))
+;      attributes (:attributes map-from-zero-one-csv)
+;      incidence (take (* first-n-docs 47) (:incidence map-from-zero-one-csv))]
+;  (println "Uni Data" (count objects) (count attributes) (first attributes) (count incidence))
+;  ;(println (compute-concept-lattice (contexts/make-context-from-matrix objects attributes incidence)))
+;  (println (compute-titanic-iceberg-lattice (contexts/make-context-from-matrix objects attributes incidence)))
+;  )
