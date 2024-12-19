@@ -27,4 +27,4 @@ output.calva-*
 resources/example.txt
 newFile.txt
 sample_results/
-results/
+/results/
