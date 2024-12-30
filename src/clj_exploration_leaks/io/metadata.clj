@@ -135,7 +135,8 @@ The text-file is saved as output-path. Hence, include the filename with .txt ext
     (.write writer (str column "\n"))            ; Write the column name (no indentation)
     (doseq [[value count] counts]                ; iterate over collection of maps consisting of value, count pairs
       (.write writer (str "  " value ": " count "\n"))) ; Write each value with an indent
-    (.write writer "\n"))))                      ; Separate each column's stats
+    (.write writer "\n")))
+  true)                      ; Separate each column's stats
 
 (defn write-stats-to-csv
   "Writes the statistics (value, absolute count, percent occurrence) of a column 'column-name' to a separate CSV file.
@@ -158,7 +159,8 @@ The text-file is saved as output-path. Hence, include the filename with .txt ext
   ; :key deconstructs a map into its values saved in variables called as the corresponding keys
     (doseq [{:keys [column counts total-count]} stats]      ; iterates over all maps in collection stats
       (let [subset-stats {:counts counts, :total-count total-count}] ; subset-stats does not include column name
-        (write-stats-to-csv column subset-stats output-dir))))
+        (write-stats-to-csv column subset-stats output-dir)))
+  true)
 
 
 
