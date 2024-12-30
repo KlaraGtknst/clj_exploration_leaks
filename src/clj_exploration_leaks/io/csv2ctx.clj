@@ -112,6 +112,31 @@
    (let [bin-ctx-res (contexts/make-context-from-matrix (:objects bin-ctxs-seq) (:attributes bin-ctxs-seq) (:incidence bin-ctxs-seq))]
      bin-ctx-res)))
 
+(defn update-incidence
+  "Updates incidence matrix based on attributes and objects.
+  If an attribute is included in another attribute, the incidence matrix is updated, such that the object has a 1 not
+  only for the child (i.e. longer instance), but also the parent (i.e. shorter instance).
+  The incidence matrix is a vector of binary values.
+  The data is a map and must have the fields :attributes, :incidence (and :objects)."
+  [data]
+  (let [attributes (:attributes data)
+        incidence (:incidence data)
+        includes? (fn [prefix string]
+                    (and (not= prefix string) (.startsWith string prefix))) ; true if parent = start of child; false otherwise.
+        updated-incidence                                   ; updated incidence matrix as defined below
+        (reduce
+         (fn [incidence [p parent]]
+           (reduce
+            (fn [incidence [c child]]                       ;fixme: doesn't work
+              (if (and (includes? parent child) (= 1 (nth incidence c)))
+                (assoc incidence p 1)
+                incidence))
+            incidence
+            (map-indexed vector attributes)))               ; returns index and value of attributes as a vector
+         incidence                                          ; first input parameter for anonymous function fn
+         (map-indexed vector attributes))]                  ; second input parameter for anonymous function fn
+    (assoc data :incidence updated-incidence)))             ; return updated data map
+
 
 (defn display-lattice
   [lattice]
@@ -181,3 +206,11 @@
 ;  ;(println (compute-concept-lattice (contexts/make-context-from-matrix objects attributes incidence)))
 ;  (println (compute-titanic-iceberg-lattice (contexts/make-context-from-matrix objects attributes incidence)))
 ;  )
+
+; fixme: doesn't work
+(let [data {:objects [".DS_Store" ".Rhistory" ".gitignore"]
+            :attributes ["Downloads" "Downloads/dir1" "Downloads/dir1/dir2"]
+            :incidence [1 0 0 0 1 0 0 0 1]}]
+  (println data)
+  (println (update-incidence data))
+  )
