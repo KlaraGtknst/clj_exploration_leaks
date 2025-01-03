@@ -120,7 +120,7 @@
   The data is a map and must have the fields :attributes, :incidence (and :objects)."
   [data]
   (let [attributes (:attributes data)
-        incidence (:incidence data)
+        incidence (vec (:incidence data))
         num-objects (count (:objects data))
         includes? (fn [string prefix]
                     (and (not= prefix string) (.startsWith string prefix))) ; true if parent = start of child; false otherwise.
@@ -142,10 +142,10 @@
                (range num-objects))
                )
             incidence
-            (map-indexed vector attributes)))               ; returns index and value of attributes as a vector
+            (map-indexed (fn [p v] [p v]) attributes)))             ; returns index and value of attributes as a vector
 
          incidence                                          ; first input parameter for anonymous function fn
-         (map-indexed vector attributes))]                  ; second input parameter for anonymous function fn
+         (map-indexed (fn [c v] [c v]) attributes))]                  ; second input parameter for anonymous function fn
     (assoc data :incidence updated-incidence)))             ; return updated data map
 
 
