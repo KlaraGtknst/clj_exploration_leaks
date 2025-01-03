@@ -28,12 +28,7 @@
         ]
     (println "Multi-valued" (mv_contexts/make-mv-context-from-matrix (:objects ctx_map) (:attributes ctx_map) (:incidence ctx_map)))
     (println "Binary-valued" (csv2ctx/display-bin-ctx (nth bin-ctx-map 2)) (nth bin-ctx-map 2))
-    (println "START")
     (println "updated binary-valued" (csv2ctx/display-bin-ctx updated-bin-ctx-map))
-    (println "END")
-    ;(println "updated binary-valued" (count (filter #(= % 1) (:incidence updated-bin-ctx-map)))
-    ;         (count (filter #(= % 1) (:incidence (nth bin-ctx-map 2)))))
-    ;(println (type updated-bin-ctx-map ) (type bin-ctx-map))
     )
 
 
