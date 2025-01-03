@@ -218,12 +218,12 @@
 ;  (println (compute-titanic-iceberg-lattice (contexts/make-context-from-matrix objects attributes incidence)))
 ;  )
 
-; fixme: doesn't work
-(let [data {:objects [".DS_Store" ".Rhistory" ".gitignore"]
-            :attributes ["Downloads" "Downloads/dir1" "Downloads/dir1/dir2"]
-            :incidence [1 0 0 0 1 0 0 0 1]}]
-  (println data)
-  (println (update-incidence data))
-  (display-bin-ctx data)
-  (display-bin-ctx (update-incidence data))
-  )
+; test update-incidence: Add 1 to parent if child is included in parent and child has 1 (binary context)
+;(let [data {:objects [".DS_Store" ".Rhistory" ".gitignore"]
+;            :attributes ["Downloads" "Downloads/dir1" "Downloads/dir1/dir2"]
+;            :incidence [1 0 0 0 1 0 0 0 1]}]
+;  (println data)
+;  (println (update-incidence data))
+;  (display-bin-ctx data)
+;  (display-bin-ctx (update-incidence data))
+;  )
