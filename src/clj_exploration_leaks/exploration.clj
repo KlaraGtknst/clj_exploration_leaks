@@ -10,7 +10,7 @@
   [& args]
 
   (def save_dir "results/")
-  (def date "030125")
+  (def date "080125")
   (let [file_path "/norgay/bigstore/kgu/data/ETYNTKE/Physics" ; "/Users/klara/Downloads"                  ;            ; TODO: change to your file path
         ]
     ;(dir/save-file-tree file_path save_dir)
