@@ -15,7 +15,7 @@
         ]
     ;(dir/save-file-tree file_path save_dir)
   (metadata/write-metadata-csv (metadata/find_metadata file_path) save_dir (str "metadata_" date ".csv"))
-  (dir/save-file-tree file_path save_dir (str "file-tree_" date ".csv"))
+  (dir/save-file-tree file_path save_dir (str "file-tree_" date ".txt"))
   )
 
 
