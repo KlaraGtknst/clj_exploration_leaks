@@ -31,8 +31,11 @@
     ;(println "Binary-valued" (csv2ctx/display-bin-ctx (nth bin-ctx-map 2)) (nth bin-ctx-map 2))
     ;(println "updated binary-valued" (csv2ctx/display-bin-ctx updated-bin-ctx-map))
     (csv2ctx/display-bin-ctx upt)
+    (println "-----------------")
     (println "binary-valued" bin-ctx-map)
+    (println "-----------------")
     (println "updated binary-valued" upt)
+    (println "-----------------")
 
     (with-open [writer (io/writer (str save_dir "multi-valued-" date ".edn"))]
       (binding [*out* writer]
@@ -47,11 +50,14 @@
         (prn updated-bin-ctx-map)))
     )
 
+  (println "-----------------")
+
 
   ; save statistics (frequencies) of data in .CSV and .txt files
-  ;(let [metadata_path (str save_dir (str "metadata_" date ".csv"))
-  ;      stats (metadata/get-stats metadata_path)]
-  ;(println "saved stats to txt file:" (metadata/write-stats2txt stats (str save_dir (str "stats_" date ".txt"))))
-  ;(println "saved stats to csv file:" (metadata/create-column-stats-files stats save_dir))))
+  (let [metadata_path (str save_dir (str "metadata_" date ".csv"))
+        stats (metadata/get-stats metadata_path)]
+  (println "saved stats to txt file:" (metadata/write-stats2txt stats (str save_dir (str "stats_" date ".txt"))))
+  (println "-----------------")
+  (println "saved stats to csv file:" (metadata/create-column-stats-files stats save_dir)))
 
  )
