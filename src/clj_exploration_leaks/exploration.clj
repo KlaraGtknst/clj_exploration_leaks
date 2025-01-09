@@ -25,7 +25,8 @@
         ctx_map (csv2ctx/extract-obj-attr-inc file_path)
         bin-ctx-map (csv2ctx/extract-obj-attr-inc-binary file_path)
         updated-bin-ctx-map (csv2ctx/update-incidence (nth bin-ctx-map 2))
-        upt (update (vec bin-ctx-map) 2 #(assoc % :incidence (:incidence updated-bin-ctx-map))) ; fixme: Doesn't work, empty context
+        complete-updated-bin-ctx-map (into '() (assoc (vec bin-ctx-map)
+                2 (assoc (nth bin-ctx-map 2) :incidence (:incidence updated-bin-ctx-map))))
         ]
 
     ;(println "-----------------")
@@ -38,11 +39,11 @@
     ;(csv2ctx/display-bin-ctx updated-bin-ctx-map)
     (println "-----------------")
     (println "Insert updated binary-valued:")
-    (csv2ctx/display-bin-ctx upt)
+    (csv2ctx/display-bin-ctx complete-updated-bin-ctx-map)
     (println "-----------------")
     (println "binary-valued" bin-ctx-map)
     (println "-----------------")
-    (println "updated binary-valued" upt)
+    (println "updated binary-valued" complete-updated-bin-ctx-map)
     (println "-----------------")
 
     (with-open [writer (io/writer (str save_dir "multi-valued-" date ".edn"))]
@@ -53,9 +54,9 @@
       (binding [*out* writer]
         (prn bin-ctx-map)))
 
-    (with-open [writer (io/writer (str save_dir "updated-binary-valued-" date ".edn"))]
+    (with-open [writer (io/writer (str save_dir "complete-updated-binary-valued-" date ".edn"))]
       (binding [*out* writer]
-        (prn updated-bin-ctx-map)))
+        (prn complete-updated-bin-ctx-map)))
     )
 
   (println "-----------------")
