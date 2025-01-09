@@ -23,16 +23,24 @@
       bin-ctx-map (csv2ctx/extract-obj-attr-inc-binary file_path)
       old-bin-ctx-map (nth bin-ctx-map 2)
       updated-bin-ctx-map (files/read-edn-file (str save_dir "updated-binary-valued-080125.edn"))
-      upt (update (vec bin-ctx-map) 2 #(assoc % :incidence (:incidence updated-bin-ctx-map))) ; fixme: Doesn't work, empty context
+      complete-updated-bin-ctx-map (csv2ctx/insert-updated-ctx-into-ctx-seq bin-ctx-map updated-bin-ctx-map 2)
       ]
 
-  (println "Old Binary-valued:")
-  (csv2ctx/display-bin-ctx old-bin-ctx-map)
+  ;(println "Old Binary-valued:")
+  ;(csv2ctx/display-bin-ctx old-bin-ctx-map)
   ;(println "-----------------")
   ;(println "updated binary-valued:")
   ;(csv2ctx/display-bin-ctx updated-bin-ctx-map)
   (println "-----------------")
+  (println "second vector elem:" (:attributes (nth (vec bin-ctx-map) 2)))
+  (println "attributes of updated obj" (:attributes updated-bin-ctx-map))
+  (println "first: old-bin-ctx-map (2nd elem of bin-ctx-map); after: updated (old with changed second incidence)")
+  (println old-bin-ctx-map)
+  (println "-----------------")
   (println "Insert updated binary-valued:")
-  (csv2ctx/display-bin-ctx upt)
+  (csv2ctx/display-bin-ctx complete-updated-bin-ctx-map)
+  ;(println "-----------------")
+  ;(println "test:" updated-bin-ctx-map)
+  ;(println "test:" (#(assoc % :incidence (:incidence updated-bin-ctx-map)) (nth (vec bin-ctx-map) 2)))
 
   )
