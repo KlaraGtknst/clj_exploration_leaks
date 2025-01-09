@@ -25,8 +25,7 @@
         ctx_map (csv2ctx/extract-obj-attr-inc file_path)
         bin-ctx-map (csv2ctx/extract-obj-attr-inc-binary file_path)
         updated-bin-ctx-map (csv2ctx/update-incidence (nth bin-ctx-map 2))
-        complete-updated-bin-ctx-map (into '() (assoc (vec bin-ctx-map)
-                2 (assoc (nth bin-ctx-map 2) :incidence (:incidence updated-bin-ctx-map))))
+        complete-updated-bin-ctx-map (csv2ctx/insert-updated-ctx-into-ctx-seq bin-ctx-map updated-bin-ctx-map 2)
         ]
 
     ;(println "-----------------")
