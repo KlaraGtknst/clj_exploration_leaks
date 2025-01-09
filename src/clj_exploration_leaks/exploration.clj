@@ -11,7 +11,7 @@
 
   (def save_dir "results/")
   (def date "080125")
-  (let [file_path "/norgay/bigstore/kgu/data/ETYNTKE/Physics" ; "/Users/klara/Downloads"                  ;            ; TODO: change to your file path
+  (let [file_path "/norgay/bigstore/kgu/data/ETYNTKE" ; "/Users/klara/Downloads"                  ;            ; TODO: change to your file path
         ]
     ;(dir/save-file-tree file_path save_dir)
   (metadata/write-metadata-csv (metadata/find_metadata file_path) save_dir (str "metadata_" date ".csv"))
@@ -27,9 +27,17 @@
         updated-bin-ctx-map (csv2ctx/update-incidence (nth bin-ctx-map 2))
         upt (update (vec bin-ctx-map) 2 #(assoc % :incidence (:incidence updated-bin-ctx-map))) ; fixme: Doesn't work, empty context
         ]
+
+    ;(println "-----------------")
     ;(println "Multi-valued" (mv_contexts/make-mv-context-from-matrix (:objects ctx_map) (:attributes ctx_map) (:incidence ctx_map)))
-    ;(println "Binary-valued" (csv2ctx/display-bin-ctx (nth bin-ctx-map 2)) (nth bin-ctx-map 2))
-    ;(println "updated binary-valued" (csv2ctx/display-bin-ctx updated-bin-ctx-map))
+    ;(println "-----------------")
+    ;(println "Binary-valued:")
+    ;(csv2ctx/display-bin-ctx (nth bin-ctx-map 2)) (nth bin-ctx-map 2)
+    ;(println "-----------------")
+    ;(println "updated binary-valued:")
+    ;(csv2ctx/display-bin-ctx updated-bin-ctx-map)
+    (println "-----------------")
+    (println "Insert updated binary-valued:")
     (csv2ctx/display-bin-ctx upt)
     (println "-----------------")
     (println "binary-valued" bin-ctx-map)
