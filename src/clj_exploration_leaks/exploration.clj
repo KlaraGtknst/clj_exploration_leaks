@@ -5,28 +5,46 @@
             [conexp.fca.many-valued-contexts :as mv_contexts]
             [clojure.java.io :as io]))
 
-
-(defn -main                                                 ; run in terminal using "lein run -m clj-exploration-leaks.exploration"
+;; run in terminal using "lein run -m clj-exploration-leaks.exploration"
+(defn -main
   [& args]
 
   (def save_dir "results/")
-  (def date "080125")
-  (let [file_path "/norgay/bigstore/kgu/data/ETYNTKE" ; "/Users/klara/Downloads"                  ;            ; TODO: change to your file path
+  (def date "090125")
+  (let [file_path "/norgay/bigstore/kgu/data/ETYNTKE" ; "/Users/klara/Downloads"
         ]
-    ;(dir/save-file-tree file_path save_dir)
+  ; metadata
   (metadata/write-metadata-csv (metadata/find_metadata file_path) save_dir (str "metadata_" date ".csv"))
+  ; file tree
   (dir/save-file-tree file_path save_dir (str "file-tree_" date ".txt"))
   )
 
 
 
-  ; displays metadata as multi-valued context
+  ; displays metadata
   (let [file_path (str save_dir (str "metadata_" date ".csv"))
-        ctx_map (csv2ctx/extract-obj-attr-inc file_path)
-        bin-ctx-map (csv2ctx/extract-obj-attr-inc-binary file_path)
-        updated-bin-ctx-map (csv2ctx/update-incidence (nth bin-ctx-map 2))
+        ctx_map (csv2ctx/extract-obj-attr-inc file_path)    ; for multi-valued context
+        bin-ctx-map (csv2ctx/extract-obj-attr-inc-binary file_path) ; binary context without updated incidence
+        updated-bin-ctx-map (csv2ctx/update-incidence (nth bin-ctx-map 2)) ; only updated incidence context
+        ; merged updated incidence-binary-context into sequence of binary contexts
         complete-updated-bin-ctx-map (csv2ctx/insert-updated-ctx-into-ctx-seq bin-ctx-map updated-bin-ctx-map 2)
         ]
+
+    (with-open [writer (io/writer (str save_dir "multi-valued-" date ".edn"))]
+      (binding [*out* writer]
+        (prn ctx_map)))
+    (println "saved multi-valued context to .edn file")
+
+    (with-open [writer (io/writer (str save_dir "complete-old-binary-valued-" date ".edn"))]
+      (binding [*out* writer]
+        (prn bin-ctx-map)))
+    (println "saved complete-old-binary-valued context to .edn file")
+
+
+    (with-open [writer (io/writer (str save_dir "complete-updated-binary-valued-" date ".edn"))]
+      (binding [*out* writer]
+        (prn complete-updated-bin-ctx-map)))
+    (println "saved complete-updated-binary-valued context to .edn file")
 
     ;(println "-----------------")
     ;(println "Multi-valued" (mv_contexts/make-mv-context-from-matrix (:objects ctx_map) (:attributes ctx_map) (:incidence ctx_map)))
@@ -36,26 +54,16 @@
     ;(println "-----------------")
     ;(println "updated binary-valued:")
     ;(csv2ctx/display-bin-ctx updated-bin-ctx-map)
-    (println "-----------------")
-    (println "Insert updated binary-valued:")
-    (csv2ctx/display-bin-ctx complete-updated-bin-ctx-map)
-    (println "-----------------")
-    (println "binary-valued" bin-ctx-map)
-    (println "-----------------")
-    (println "updated binary-valued" complete-updated-bin-ctx-map)
-    (println "-----------------")
+    ;(println "-----------------")
+    ;(println "Insert updated binary-valued:")
+    ;(csv2ctx/display-bin-ctx complete-updated-bin-ctx-map)
+    ;(println "-----------------")
+    ;(println "binary-valued" bin-ctx-map)
+    ;(println "-----------------")
+    ;(println "updated binary-valued" complete-updated-bin-ctx-map)
+    ;(println "-----------------")
 
-    (with-open [writer (io/writer (str save_dir "multi-valued-" date ".edn"))]
-      (binding [*out* writer]
-        (prn ctx_map)))
 
-    (with-open [writer (io/writer (str save_dir "binary-valued-" date ".edn"))]
-      (binding [*out* writer]
-        (prn bin-ctx-map)))
-
-    (with-open [writer (io/writer (str save_dir "complete-updated-binary-valued-" date ".edn"))]
-      (binding [*out* writer]
-        (prn complete-updated-bin-ctx-map)))
     )
 
   (println "-----------------")
