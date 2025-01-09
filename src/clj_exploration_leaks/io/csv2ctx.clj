@@ -93,7 +93,7 @@
   If input contains multiple binary contexts, it should be of type clojure.lang.LazySeq.
   If input contains only one binary context, it should be of type clojure.lang.PersistentArrayMap."
   ([bin-ctxs-seq]
-   (if (instance? clojure.lang.LazySeq bin-ctxs-seq)
+   (if (or (instance? clojure.lang.LazySeq bin-ctxs-seq) (instance? clojure.lang.PersistentList bin-ctxs-seq))
      ;; bin-ctxs-seq is a lazy sequence of binary contexts
      (doseq [bin-ctx bin-ctxs-seq]
        (display-bin-ctx bin-ctx)))
@@ -148,6 +148,14 @@
          (map-indexed (fn [c v] [c v]) attributes))]                  ; second input parameter for anonymous function fn
     (assoc data :incidence updated-incidence)))             ; return updated data map
 
+
+(defn insert-updated-ctx-into-ctx-seq
+  "Updates the incidence matrix of a binary context in a sequence of binary contexts.
+  The new incidence matrix is inserted at the given position.
+  The data is a map and must have the field :incidence (, :attributes, :objects)."
+  [bin-ctxs-seq updated-bin-ctx ^Integer position]
+  (into '() (assoc (vec bin-ctxs-seq)
+                position (assoc (nth bin-ctxs-seq position) :incidence (:incidence updated-bin-ctx)))))
 
 (defn display-lattice
   [lattice]
