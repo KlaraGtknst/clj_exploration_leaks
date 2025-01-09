@@ -1,5 +1,6 @@
 (ns clj-exploration-leaks.io.files
-  (:require [clojure.java.io :as io]))
+  (:require [clojure.java.io :as io]
+            [clojure.edn :as edn]))
 
 ;; this file provides functions to check whether files exit, read file contents and write to files
 ;; the code is inspired by https://www.tutorialspoint.com/clojure/clojure_file_io.htm (07.10.2024)
@@ -11,7 +12,7 @@
   (println content)                                         ;; prints content to IO
   content))                                                 ;; returns content
 
-(def x (readFile "example.txt"))
+;(def x (readFile "example.txt"))
 
 
 (defn writeFile
@@ -19,8 +20,8 @@
   [content filename]                                        ;; separate multiple arguments by space
   (spit filename content))
 
-(when x                                                     ;; avoid null pointer exception
- (writeFile x "newFile.txt"))
+;(when x                                                     ;; avoid null pointer exception
+; (writeFile x "newFile.txt"))
 
 
 (defn fileExists
@@ -29,5 +30,10 @@
   (let [exists (.exists (io/file filename))]
     exists))
 
-(println "the file newFile.txt exists: " (fileExists "newFile.txt"))
-(println "the file test.txt exists: " (fileExists "test.txt"))
+(defn read-edn-file [file-path]
+  "Reads EDN data from a file and returns it as a Clojure data structure."
+ (with-open [rdr (io/reader file-path)]
+    (edn/read (java.io.PushbackReader. rdr))))
+
+;(println "the file newFile.txt exists: " (fileExists "newFile.txt"))
+;(println "the file test.txt exists: " (fileExists "test.txt"))
