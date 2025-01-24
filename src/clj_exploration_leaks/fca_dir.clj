@@ -65,42 +65,42 @@
 
 
 (println "start")
-;(let [path2csv-files "/Users/klara/Developer/Uni/WiSe2425/text_topic/results/incidences/"
-;      concepts-save-path "/Users/klara/Developer/Uni/WiSe2425/clj_exploration_leaks/results/"]
-;  ; iterate over all csv files in directory
-;   (doseq [file (file-seq (io/file path2csv-files))
-;           :when (.endsWith (.getName file) ".csv")]
-;     (try
-;     (let [map-from-zero-one-csv (csv2ctx/zero-one-csv2-map (.getAbsolutePath file))
-;           ctx (contexts/make-context-from-matrix (:objects map-from-zero-one-csv) (:attributes map-from-zero-one-csv) (:incidence map-from-zero-one-csv))
-;           ice-berg-concepts (obtain-iceberg-concepts ctx 0.1)
-;           ]
-;          (println (.getName file))
-;          (println "ice-berg-intents of " (.getName file) " from here" ice-berg-concepts)
-;          (save-iceberg-concepts-to-file ice-berg-concepts concepts-save-path (str (filename-without-extension (.getName file)) ".edn"))
-;          (println "ice-berg-intents of " (.getName file) " from file" (load-iceberg-concepts-from-file concepts-save-path (str (.getName file) ".edn")))
-;       )
-;     (catch Exception e (str "caught exception: " (.getMessage e)))
-;     )
-;   )
-;)
+(let [path2csv-files "/Users/klara/Downloads/top-per-dir/01_23_25/"
+      concepts-save-path "/Users/klara/Developer/Uni/WiSe2425/clj_exploration_leaks/results/fca-dir-concepts/"]
+  ; iterate over all csv files in directory
+   (doseq [file (file-seq (io/file path2csv-files))
+           :when (.endsWith (.getName file) ".csv")]
+     (try
+     (let [map-from-zero-one-csv (csv2ctx/zero-one-csv2-map (.getAbsolutePath file))
+           ctx (contexts/make-context-from-matrix (:objects map-from-zero-one-csv) (:attributes map-from-zero-one-csv) (:incidence map-from-zero-one-csv))
+           ice-berg-concepts (obtain-iceberg-concepts ctx 0.9)
+           ]
+          (println (.getName file))
+          (println "ice-berg-intents of " (.getName file) " from here" ice-berg-concepts)
+          (save-iceberg-concepts-to-file ice-berg-concepts concepts-save-path (str (filename-without-extension (.getName file)) ".edn"))
+          (println "ice-berg-intents of " (.getName file) " from file" (load-iceberg-concepts-from-file concepts-save-path (str (.getName file) ".edn")))
+       )
+     (catch Exception e (str "caught exception: " (.getMessage e)))
+     )
+   )
+)
 
 ;; read server results
-(let [path2server-data "/Users/klara/Downloads/top-per-dir/01_23_25/Machine Guns/Machine Guns_thres_row_norm_doc_topic_incidence_01_24_25.csv"
-      concepts-save-path "/Users/klara/Developer/Uni/WiSe2425/clj_exploration_leaks/results/"
-      file (io/file path2server-data)
-      map-from-zero-one-csv (csv2ctx/zero-one-csv2-map path2server-data)
-      first-n-docs (count (:objects map-from-zero-one-csv)) ; number of documents
-      objects (take first-n-docs (:objects map-from-zero-one-csv))
-      attributes (:attributes map-from-zero-one-csv)
-      incidence (:incidence map-from-zero-one-csv)          ;(take (* first-n-docs 47)  )
-      ctx (contexts/make-context-from-matrix objects attributes incidence)
-      ice-berg-concepts (obtain-iceberg-concepts ctx 0.9)
-      ]
-  (println "Server Data: num objects=" (count objects) " , num attributes=" (count attributes) " , num incidences=" (count incidence))
-  (save-iceberg-concepts-to-file ice-berg-concepts concepts-save-path (str (filename-without-extension (.getName file)) ".edn"))
-  (println "loaded iceberg concepts of " (.getName file) " from file" (load-iceberg-concepts-from-file concepts-save-path (str (filename-without-extension (.getName file)) ".edn")))
-  )
+;(let [path2server-data "/Users/klara/Downloads/top-per-dir/01_23_25/Machine Guns/Machine Guns_thres_row_norm_doc_topic_incidence_01_24_25.csv"
+;      concepts-save-path "/Users/klara/Developer/Uni/WiSe2425/clj_exploration_leaks/results/"
+;      file (io/file path2server-data)
+;      map-from-zero-one-csv (csv2ctx/zero-one-csv2-map path2server-data)
+;      first-n-docs (count (:objects map-from-zero-one-csv)) ; number of documents
+;      objects (take first-n-docs (:objects map-from-zero-one-csv))
+;      attributes (:attributes map-from-zero-one-csv)
+;      incidence (:incidence map-from-zero-one-csv)          ;(take (* first-n-docs 47)  )
+;      ctx (contexts/make-context-from-matrix objects attributes incidence)
+;      ice-berg-concepts (obtain-iceberg-concepts ctx 0.9)
+;      ]
+;  (println "Server Data: num objects=" (count objects) " , num attributes=" (count attributes) " , num incidences=" (count incidence))
+;  (save-iceberg-concepts-to-file ice-berg-concepts concepts-save-path (str (filename-without-extension (.getName file)) ".edn"))
+;  (println "loaded iceberg concepts of " (.getName file) " from file" (load-iceberg-concepts-from-file concepts-save-path (str (filename-without-extension (.getName file)) ".edn")))
+;  )
 
 ;; Example usage:
 ; (def data
