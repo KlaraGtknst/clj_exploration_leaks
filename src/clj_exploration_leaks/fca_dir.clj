@@ -85,14 +85,34 @@
 ;   )
 ;)
 
+;; read server results
+(let [path2server-data "/Users/klara/Downloads/top-per-dir/01_23_25/Machine Guns/Machine Guns_thres_row_norm_doc_topic_incidence_01_24_25.csv"
+      concepts-save-path "/Users/klara/Developer/Uni/WiSe2425/clj_exploration_leaks/results/"
+      file (io/file path2server-data)
+      map-from-zero-one-csv (csv2ctx/zero-one-csv2-map path2server-data)
+      first-n-docs (count (:objects map-from-zero-one-csv)) ; number of documents
+      objects (take first-n-docs (:objects map-from-zero-one-csv))
+      attributes (:attributes map-from-zero-one-csv)
+      incidence (:incidence map-from-zero-one-csv)          ;(take (* first-n-docs 47)  )
+      ctx (contexts/make-context-from-matrix objects attributes incidence)
+      ice-berg-concepts (obtain-iceberg-concepts ctx 0.9)
+      ]
+  (println "Server Data: num objects=" (count objects) " , num attributes=" (count attributes) " , num incidences=" (count incidence))
+  (save-iceberg-concepts-to-file ice-berg-concepts concepts-save-path (str (filename-without-extension (.getName file)) ".edn"))
+  (println "loaded iceberg concepts of " (.getName file) " from file" (load-iceberg-concepts-from-file concepts-save-path (str (filename-without-extension (.getName file)) ".edn")))
+  )
+
 ;; Example usage:
- (def data
-  [ [ [#{:doc1 :doc2 :doc4} #{:topic_15 :topic_13}]
-      [#{:doc3 :doc5} #{:topic_11}] ]
-    [ [#{:doc2 :doc6} #{:topic_14 :topic_13}]
-      [#{:doc4} #{:topic_12}] ] ])
-(def result (build-incidence-over-multiple-directories data))
-(def incidence-matrix (:incidence-matrix result))
-(def topic-map (:topic-map result))
-(println incidence-matrix)
-(println topic-map)
+; (def data
+;  [ [ [#{:doc1 :doc2 :doc4} #{:topic_15 :topic_13}]
+;      [#{:doc3 :doc5} #{:topic_11}] ]
+;    [ [#{:doc2 :doc6} #{:topic_14 :topic_13}]
+;      [#{:doc4} #{:topic_12}] ] ])
+;(def result (build-incidence-over-multiple-directories data))
+;(def incidence-matrix (:incidence-matrix result))
+;(def topic-map (:topic-map result))
+;(println incidence-matrix)
+;(println topic-map)
+
+; TODO: sequence of sequences to context
+;
