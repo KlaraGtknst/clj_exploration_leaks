@@ -40,31 +40,47 @@
 ;; context of multiple directories
 
 (defn build-incidence-over-multiple-directories
-  "Builds incidence matrix over multiple directories."
+  "Builds an incidence matrix over multiple directories, where each directory contains a set of instances.
+  Each instance consists of a collection of topic pairs, and the function generates a matrix where rows
+  correspond to instances and columns correspond to topics. The matrix entry at a given row and column
+  is 1 if the instance contains the topic, otherwise 0.
+
+  Parameters:
+  - instances: A collection of directories, where each directory is a collection of instances.
+    Each instance is a collection of topic pairs, with the first element typically being an identifier
+    and the second element being a collection of topics.
+
+  Returns:
+  A map containing:
+  - :incidence-matrix: A list of vectors representing the incidence matrix.
+  - :topic-map: A map from topics to their corresponding column indices in the incidence matrix."
   [instances]
   (let [all-topics (->> instances
                         (mapcat (fn [instance]
-                                  (mapcat second instance))) ; Collect all topics from all instances
+                                  ;; For each instance, collect the topics (second element of pairs).
+                                  (mapcat second instance)))
+                        ;; Collect all unique topics into a set.
                         set)
-        topic->col (zipmap all-topics (range))] ; Map topics to column indices
-    ;(let [all-topics (->> instances
-    ;                    (mapcat (fn [instance]
-    ;                            (map second instance))) ; Collect topics from sub-instances
-    ;                  (mapcat identity) ; Flatten nested collections
-    ;                  set)                                  ; remove duplicates
-    ;    topic->col (zipmap all-topics (range))] ; Map topics to column indices
-    ;; Build the incidence matrix
+        ;; Create a map of each topic to its corresponding column index.
+        topic->col (zipmap all-topics (range))]
     {:incidence-matrix
      (reduce (fn [matrix instance]
                (let [instance-topics (->> instance
-                                          (mapcat second) ; Collect topics from this instance
+                                          ;; For this instance, collect all topics (second element of pairs).
+                                          (mapcat second)
+                                          ;; Convert to a set for efficient lookup.
                                           set)]
                  (conj matrix
+                       ;; Create a row where each entry is 1 if the topic is in the instance-topics, otherwise 0.
                        (vec (map #(if (contains? instance-topics %) 1 0)
                                  all-topics)))))
+             ;; Start with an empty matrix (initial value for reduce).
              []
+             ;; Process each instance.
              instances)
+     ;; Include the topic-to-column mapping in the result.
      :topic-map topic->col}))
+
 
 
 (defn extract-iceberg-concepts-from-csv-bulk
