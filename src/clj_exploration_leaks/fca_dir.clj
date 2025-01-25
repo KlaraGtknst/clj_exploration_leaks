@@ -1,5 +1,6 @@
 (ns clj-exploration-leaks.fca-dir
   (:require [clj-exploration-leaks.io.csv2ctx :as csv2ctx]
+            [clojure.data.csv :as csv]
             [clojure.java.io :as io]
             [conexp.fca.contexts :as contexts]
             [conexp.fca.lattices :as lattices]
@@ -17,11 +18,15 @@
   )
 
 (defn save-iceberg-concepts-to-file
-  "Saves iceberg concepts to edn file."
+  "Saves iceberg concepts to edn file.
+  If the file name contains 'translated', the file is saved in a subdirectory 'translated'."
   [ice-berg-concepts file-path file-name]
-  (spit (str file-path file-name) (pr-str ice-berg-concepts)) ; writes data to edn file
+  (let [target-path (if (.contains file-name "translated")
+                        (str file-path "translated/")
+                        file-path)]
+  (spit (str target-path file-name) (pr-str ice-berg-concepts))) ; writes data to edn file
 )
-
+         
 (defn load-iceberg-concepts-from-file
   "Loads iceberg concepts from edn file."
   [file-path file-name]
@@ -92,7 +97,10 @@
 
   ; iterate over all csv files in directory
    (doseq [file (file-seq (io/file path2root-dir))
-           :when (.endsWith (.getName file) ".csv")]
+           :when (and (.endsWith (.getName file) ".csv")
+                      (.contains (.getName file) "thres")   ; only thresholded incidence matrices
+                      (not (.contains (.getName file) "term")) ; exclude term-topic incidence matrices
+                      (not (.contains (.getName file) "translated")))] ; exclude translated files (doc has title name)
      (try
        (let [map-from-zero-one-csv (csv2ctx/zero-one-csv2-map (.getAbsolutePath file))
              ctx (contexts/make-context-from-matrix (:objects map-from-zero-one-csv) (:attributes map-from-zero-one-csv) (:incidence map-from-zero-one-csv))
@@ -139,20 +147,20 @@
 
 
 ;; Example usage:
- (def data
-  [ [ [#{:doc1 :doc2 :doc4} #{:topic_15 :topic_13}]
-      [#{:doc3 :doc5} #{:topic_11}] ]
-    [ [#{:doc2 :doc6} #{:topic_14 :topic_13}]
-      [#{:doc4} #{:topic_12}] ]
-    [ [#{:doc_0 :doc_1} #{:topic_55}] ]
-    [ [#{:doc_2 :doc_6} #{}] ]
-   ])
-(def result (build-incidence-over-multiple-directories data))
-(def incidence-matrix (:incidence-matrix result))
-(def topic-map (:topic-map result))
-(println "data" data)
-(println "incidence-matrix" incidence-matrix)
-(println "topic-map" topic-map)
+; (def data
+;  [ [ [#{:doc1 :doc2 :doc4} #{:topic_15 :topic_13}]
+;      [#{:doc3 :doc5} #{:topic_11}] ]
+;    [ [#{:doc2 :doc6} #{:topic_14 :topic_13}]
+;      [#{:doc4} #{:topic_12}] ]
+;    [ [#{:doc_0 :doc_1} #{:topic_55}] ]
+;    [ [#{:doc_2 :doc_6} #{}] ]
+;   ])
+;(def result (build-incidence-over-multiple-directories data))
+;(def incidence-matrix (:incidence-matrix result))
+;(def topic-map (:topic-map result))
+;(println "data" data)
+;(println "incidence-matrix" incidence-matrix)
+;(println "topic-map" topic-map)
 
 (defn parse-instance [instance]
   ;; Convert strings to keywords in docs and topics
@@ -160,28 +168,143 @@
          [(set (map keyword docs)) (set (map keyword topics))])
        instance))
 
-(defn load-instances-from-dir [dir-path]
-  ;; Parse all EDN files in the directory and collect instances
-  (let [edn-files (->> (file-seq (io/file dir-path))
-                       (filter #(.endsWith (.getName %) ".edn")))]
+(defn load-instances-from-dir
+  "Loads instances from all EDN files in the specified directory.
+
+  This function reads each EDN file in the directory, parses its content, and converts it into an
+  instance structure using the `parse-instance` function. Additionally, it collects the filenames
+  (excluding the '.edn' file extension) corresponding to the instances.
+
+  Parameters:
+  - dir-path: A string representing the path to the directory containing EDN files.
+
+  Returns:
+  A map containing:
+  - :instances: A vector of parsed instances, where each instance is the result of `parse-instance`.
+  - :filenames: A vector of filenames (without the '.edn' extension), ordered to correspond to the instances."
+  [dir-path]
+  (println "dir-path" dir-path)
+  ;; Get all files in the directory with a ".edn" extension, but not in subdirectories
+  (let [edn-files (->> (.listFiles (io/file dir-path))
+                       ;; Filter only the files ending with ".edn" & are files
+                        (filter #(and (.isFile %) (.endsWith (.getName %) ".edn"))))]
+    ;; Process the files and return the parsed instances along with their filenames
+    (println "edn-files" edn-files)
     (reduce (fn [acc file]
-              (let [content (edn/read-string (slurp file))]
-                (conj acc (parse-instance content))))
-            []
+              (let [content (edn/read-string (slurp file))  ; Read and parse EDN content
+                    instance (parse-instance content)       ; Parse the content into an instance
+                    filename (-> (.getName file)            ; Extract the filename
+                                 (clojure.string/replace #"\.edn$" ""))] ; Remove the '.edn' extension
+                ;; Add the parsed instance and filename to the accumulators
+                {:instances (conj (:instances acc) instance)
+                 :filenames (conj (:filenames acc) filename)}))
+            ;; Initialize the accumulator with empty vectors
+            {:instances [] :filenames []}
             edn-files)))
 
-(let [path2csv-files "/Users/klara/Downloads/top-per-dir/01_23_25/"
-      concepts-save-path "/Users/klara/Developer/Uni/WiSe2425/clj_exploration_leaks/results/fca-dir-concepts/"
-      data []
-      updated-data (into data (load-instances-from-dir concepts-save-path))
-      result (build-incidence-over-multiple-directories updated-data)
-      incidence-matrix (:incidence-matrix result)
-      topic-map (:topic-map result)
+(defn write-across-dir-topic-incidence-csv
+  "Creates a CSV file from directory names, incidence matrix, and topic map.
+
+  Parameters:
+  - dir-names: A vector of directory names (e.g., [\"dir1\", \"dir3\", \"dir2\", \"dir15\"]).
+  - incidence-matrix: A vector of vectors representing incidences between directories and topics
+    (e.g., [[1 0] [0 0] [1 0] [0 0]]).
+  - topic-map: A map from topic keywords to column indices (e.g., {:topic_55 0, :topic_231 1}).
+  - output-path: A string representing the file path where the CSV will be written.
+
+  Output:
+  - Writes the CSV file to the specified output path."
+  [dir-names incidence-matrix topic-map output-path]
+  ;; Generate the CSV data
+  (let [topics (->> topic-map
+                    (sort-by val)         ; Sort topics by their column indices
+                    (map key)             ; Extract topic keywords
+                    (map name))           ; Convert keywords to strings
+        ;; Create rows with directory names and their corresponding incidences
+        rows (map (fn [dir incidences]
+                    (cons dir incidences))
+                  dir-names
+                  incidence-matrix)
+        ;; Combine the header row (topics) with the data rows
+        csv-data (cons (cons "Directory" topics) rows)]
+    ;; Write the CSV data to the specified output path
+    (with-open [writer (io/writer output-path)]
+      (csv/write-csv writer csv-data))))
+
+(defn truncate-before-underscore
+  "Takes a list of strings and returns the same list with each string truncated
+   at the first underscore, if present. If no underscore is found, the string remains unchanged.
+
+  Parameters:
+  - strings: A list of strings to process.
+
+  Returns:
+  - A list of strings truncated as described."
+  [strings]
+  (map (fn [s]
+         (let [underscore-index (.indexOf s "_")]
+           (if (>= underscore-index 0)  ; Check if underscore is present
+             (subs s 0 underscore-index) ; Truncate at underscore
+             s)))                        ; Return the whole string if no underscore
+       strings))
+
+(defn subdir-topic-inc2ctx-csv
+  "This is the function that combines the previous functions to create a context from a directory of incidences of subdirectories and topics.
+  The output-save-path is the path where the context will be saved as a csv file (should end with /, thus, not containing filename."
+  [input-path concepts-save-path output-save-path]
+  (extract-iceberg-concepts-from-csv-bulk input-path concepts-save-path)
+  (let [data []
+        seq-instances-map (load-instances-from-dir concepts-save-path)
+        updated-data (into data (:instances seq-instances-map))
+        list-of-file-dir-names (:filenames seq-instances-map)
+        result (build-incidence-over-multiple-directories updated-data)
+        incidence-matrix (:incidence-matrix result)
+        topic-map (:topic-map result)
       ]
-  (println "updated-data" updated-data)
-  (println "incidence-matrix" incidence-matrix)
-  (println "topic-map" topic-map)
+    (println "filenames" list-of-file-dir-names)
+    (println "updated-data" updated-data)
+  (write-across-dir-topic-incidence-csv (truncate-before-underscore list-of-file-dir-names) incidence-matrix topic-map (str output-save-path "across-dir-incidence-matrix.csv"))
+  )
   )
 
-; TODO: sequence of sequences to context
-;
+
+
+;(let [path2csv-files "/Users/klara/Downloads/top-per-dir/01_23_25/"
+;      concepts-save-path "/Users/klara/Developer/Uni/WiSe2425/clj_exploration_leaks/results/fca-dir-concepts/"
+;      data []
+;      seq-instances-map (load-instances-from-dir concepts-save-path)
+;      updated-data (into data (:instances seq-instances-map))
+;      list-of-file-dir-names (:filenames seq-instances-map)
+;      result (build-incidence-over-multiple-directories updated-data)
+;      incidence-matrix (:incidence-matrix result)
+;      topic-map (:topic-map result)
+;      ]
+;  (println "filenames" list-of-file-dir-names)
+;  (println "updated-data" updated-data)
+;  (println "incidence-matrix" incidence-matrix)
+;  (println "topic-map" topic-map)
+;  (write-across-dir-topic-incidence-csv (truncate-before-underscore list-of-file-dir-names) incidence-matrix topic-map "/Users/klara/Developer/Uni/WiSe2425/clj_exploration_leaks/results/fca-dir-concepts/across-dir/across-dir-incidence-matrix.csv")
+;  (println "all done")
+;  (subdir-topic-inc2ctx-csv concepts-save-path "/Users/klara/Developer/Uni/WiSe2425/clj_exploration_leaks/results/fca-dir-concepts/across-dir/")
+;  )
+
+(let [path2csv-files "/Users/klara/Downloads/top-per-dir-24-01-25/"
+      concepts-save-path "/Users/klara/Developer/Uni/WiSe2425/clj_exploration_leaks/results/fca-dir-concepts/"
+      output-save-path "/Users/klara/Developer/Uni/WiSe2425/clj_exploration_leaks/results/fca-dir-concepts/across-dir/"
+      across-dir-ctx (csv2ctx/zero-one-csv2-map (str output-save-path "across-dir-incidence-matrix.csv"))
+      objects (:objects across-dir-ctx)
+      attributes (:attributes across-dir-ctx)
+      incidence (:incidence across-dir-ctx)
+      ctx (contexts/make-context-from-matrix objects attributes incidence)
+      ]
+  ;; create csv file containing incidence matrix of subdirectories and topics
+    (subdir-topic-inc2ctx-csv path2csv-files concepts-save-path output-save-path)
+
+  ;; display context
+  ;  (println "across-dir-ctx" across-dir-ctx)
+  ;  (csv2ctx/display-bin-ctx across-dir-ctx)
+  ;  (println "objects" objects)
+  ;  (println "attributes" attributes)
+  ;  (println "incidence" incidence)
+  ;  (csv2ctx/compute-titanic-iceberg-lattice ctx)
+  )
