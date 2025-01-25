@@ -99,4 +99,3 @@
   ;  (println "incidence" incidence)
   ;  (csv2ctx/compute-titanic-iceberg-lattice ctx)
   )
- )
