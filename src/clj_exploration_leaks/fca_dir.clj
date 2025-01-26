@@ -120,6 +120,7 @@
                                                Long/MIN_VALUE)  ; Fallback if no date is found
                                         files))))]
      ; Process only the newest files
+     (println "files" files)
      (doseq [file files]
        (try
          (let [map-from-zero-one-csv (csv2ctx/zero-one-csv2-map (.getAbsolutePath file))
