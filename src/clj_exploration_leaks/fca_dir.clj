@@ -9,7 +9,7 @@
             )
   (:import (java.text SimpleDateFormat)))
 
-(defn obtain-iceberg-concepts
+(defn _obtain-iceberg-concepts
   "Returns iceberg concepts from a binary context.
 
   Parameters:
@@ -24,12 +24,12 @@
     ice-berg-concepts)
   )
 
-(defn save-iceberg-concepts-to-file
+(defn _save-iceberg-concepts-to-file
   "Saves iceberg concepts to edn file.
   If the file name contains 'translated', the file is saved in a subdirectory 'translated'.
 
   Parameters:
-  - ice-berg-concepts: A sequence of iceberg concepts.
+  - ice-berg-concepts: A sequence of iceberg concepts. They can be obtained by the function obtain-iceberg-concepts.
   - file-path: The path to the directory where the file will be saved.
   - file-name: The name of the file."
   [ice-berg-concepts ^String file-path ^String file-name]
@@ -39,8 +39,9 @@
   (spit (str target-path file-name) (pr-str ice-berg-concepts))) ; writes data to edn file
 )
          
-(defn load-iceberg-concepts-from-file
+(defn _load-iceberg-concepts-from-file
   "Loads iceberg concepts from edn file.
+  The file is created by the function save-iceberg-concepts-to-file.
 
   Parameters:
   - file-path: The path to the directory where the file is saved.
@@ -53,7 +54,7 @@
  )
 
 
-(defn filename-without-extension
+(defn _filename-without-extension
   "Returns the filename without extension.
 
   Parameters:
@@ -70,20 +71,21 @@
 
 ;; context of multiple directories
 
-(defn build-incidence-over-multiple-directories
-  "Builds an incidence matrix over multiple directories, where each directory contains a set of instances.
-  Each instance consists of a collection of topic pairs, and the function generates a matrix where rows
+(defn _build-incidence-over-multiple-directories
+  "Builds an incidence matrix over multiple directories, where each directory contains a set of instances
+  (objects: documents & attributes: topics).
+  Each instance consists of a collection of topic pairs (document-topic), and the function generates a matrix where rows
   correspond to instances and columns correspond to topics. The matrix entry at a given row and column
   is 1 if the instance contains the topic, otherwise 0.
 
   Parameters:
   - instances: A collection of directories, where each directory is a collection of instances.
     Each instance is a collection of topic pairs, with the first element typically being an identifier
-    and the second element being a collection of topics.
+    and the second element being a collection of topics. Can be obtained from the function `load-instances-from-dir`.
 
   Returns:
   A map containing:
-  - :incidence-matrix: A list of vectors representing the incidence matrix.
+  - :incidence-matrix: A list of vectors representing the incidence matrix between directories and topics.
   - :topic-map: A map from topics to their corresponding column indices in the incidence matrix."
   [instances]
   (let [all-topics (->> instances
@@ -129,7 +131,7 @@
       (let [date-format (SimpleDateFormat. "_MM_dd_yy")]
         (.parse date-format date-str)))))
 
-(defn extract-iceberg-concepts-from-csv-bulk
+(defn _extract-iceberg-concepts-from-csv-bulk
   "This method extracts and saves concepts from a directory of csv files.
   Each csv file is a binary context.
   An iceberg concept is a pair of intent and extent,
@@ -165,24 +167,26 @@
                ctx (contexts/make-context-from-matrix (:objects map-from-zero-one-csv)
                                                       (:attributes map-from-zero-one-csv)
                                                       (:incidence map-from-zero-one-csv))
-               ice-berg-concepts (obtain-iceberg-concepts ctx min-sup)
-               save-concepts-file-name (str (filename-without-extension (.getName file)) ".edn")]
-           (save-iceberg-concepts-to-file ice-berg-concepts concepts-save-path save-concepts-file-name))
+               ice-berg-concepts (_obtain-iceberg-concepts ctx min-sup)
+               save-concepts-file-name (str (_filename-without-extension (.getName file)) ".edn")]
+           (_save-iceberg-concepts-to-file ice-berg-concepts concepts-save-path save-concepts-file-name))
          (catch Exception e
            (str "caught exception on file " (.getName file) ": " (.getMessage e))))))
    )
   ([^String path2root-dir ^String concepts-save-path]
-   (extract-iceberg-concepts-from-csv-bulk path2root-dir concepts-save-path 0.9)))
+   (_extract-iceberg-concepts-from-csv-bulk path2root-dir concepts-save-path 0.9)))
 
-(defn parse-instance [instance]
-  ;; Convert strings to keywords in docs and topics
+(defn _parse-instance
+  "Parses an instance from a map containing document-topic concepts.
+  Converts the document ID and topic ID strings to keywords."
+  [instance]
   (mapv (fn [[docs topics]]
          [(set (map keyword docs)) (set (map keyword topics))])
        instance))
 
-(defn load-instances-from-dir
+(defn _load-instances-from-dir
   "Loads instances from all EDN files in the specified directory, keeping only the newest versions.
-
+  Each EDN file corresponds to a directory and contains a document-topic concepts.
   Filters EDN files based on dates in their filenames, ensuring only the latest file for each base name
   is processed. Parses the content and converts it into an instance structure.
 
@@ -191,32 +195,33 @@
 
   Returns:
   A map containing:
-  - :instances: A vector of parsed instances, where each instance is the result of `parse-instance`.
+  - :instances: A vector of parsed instances, where each instance is the result of `_parse-instance`,
+    i.e. document-topic concepts.
   - :filenames: A vector of filenames (without the '.edn' extension), ordered to correspond to the instances."
   [^String dir-path]
-  (let [edn-files (->> (.listFiles (io/file dir-path))
+  (let [edn-files (->> (.listFiles (io/file dir-path))      ; only files, not directories
                        (filter #(and (.isFile %) (.endsWith (.getName %) ".edn")))) ; Filter EDN files
         newest-files (->> edn-files
-                          (group-by #(-> (.getName %)
-                                         (clojure.string/replace #"_\d{2}_\d{2}_\d{2}\.edn$" "")
+                          (group-by #(-> (.getName %)       ; filter via filename
+                                         (clojure.string/replace #"_\d{2}_\d{2}_\d{2}\.edn$" "") ; omit date in filename
                                          (clojure.string/lower-case))) ; Group by base filename
                           (map (fn [[_ files]]
                                  (apply max-key #(or (some-> (_extract-date-from-filename (.getName %))
                                                              .getTime)
                                                      Long/MIN_VALUE)
-                                          files))))]
+                                          files))))]        ; Keep only the newest files
     ;; Process the newest files
     (reduce (fn [acc file]
               (let [content (edn/read-string (slurp file))  ; Read and parse EDN content
-                    instance (parse-instance content)       ; Parse the content into an instance
+                    instance (_parse-instance content)       ; Parse the content into an instance
                     filename (-> (.getName file)            ; Extract the filename
                                  (clojure.string/replace #"\.edn$" ""))] ; Remove the '.edn' extension
                 {:instances (conj (:instances acc) instance)
                  :filenames (conj (:filenames acc) filename)}))
-            {:instances [] :filenames []}
+            {:instances [] :filenames []}                   ; ensure vectors as inner structure
             newest-files)))
 
-(defn write-across-dir-topic-incidence-csv
+(defn _write-across-dir-topic-incidence-csv
   "Creates a CSV file from directory names, incidence matrix, and topic map.
 
   Parameters:
@@ -245,7 +250,7 @@
     (with-open [writer (io/writer output-path)]
       (csv/write-csv writer csv-data))))
 
-(defn truncate-before-underscore
+(defn _truncate-before-underscore
   "Takes a list of strings and returns the same list with each string truncated
    at the first underscore, if present. If no underscore is found, the string remains unchanged.
 
@@ -271,100 +276,15 @@
   - concepts-save-path: The path to the directory where the iceberg concepts will be saved.
   - output-save-path: The path to the directory where the dir-topic context across the directories will be saved as a csv file."
   [^String input-path ^String concepts-save-path ^String output-save-path]
-  (extract-iceberg-concepts-from-csv-bulk input-path concepts-save-path)
+  (_extract-iceberg-concepts-from-csv-bulk input-path concepts-save-path)
   (let [data []
-        seq-instances-map (load-instances-from-dir concepts-save-path)
+        seq-instances-map (_load-instances-from-dir concepts-save-path)
         updated-data (into data (:instances seq-instances-map))
         list-of-file-dir-names (:filenames seq-instances-map)
-        result (build-incidence-over-multiple-directories updated-data)
+        result (_build-incidence-over-multiple-directories updated-data)
         incidence-matrix (:incidence-matrix result)
         topic-map (:topic-map result)
       ]
-  (write-across-dir-topic-incidence-csv (truncate-before-underscore list-of-file-dir-names) incidence-matrix topic-map (str output-save-path "across-dir-incidence-matrix.csv"))
+  (_write-across-dir-topic-incidence-csv (_truncate-before-underscore list-of-file-dir-names) incidence-matrix topic-map (str output-save-path "across-dir-incidence-matrix.csv"))
   )
   )
-
-
-
-;(let [path2csv-files "/Users/klara/Downloads/top-per-dir/01_23_25/"
-;      concepts-save-path "/Users/klara/Developer/Uni/WiSe2425/clj_exploration_leaks/results/fca-dir-concepts/"]
- ; iterate over all csv files in directory with function
-  ;(extract-iceberg-concepts-from-csv-bulk path2csv-files concepts-save-path)
-
-  ; iterate over all csv files in directory manually
-  ; (doseq [file (file-seq (io/file path2csv-files))
-  ;         :when (.endsWith (.getName file) ".csv")]
-  ;   (try
-  ;   (let [map-from-zero-one-csv (csv2ctx/zero-one-csv2-map (.getAbsolutePath file))
-  ;         ctx (contexts/make-context-from-matrix (:objects map-from-zero-one-csv) (:attributes map-from-zero-one-csv) (:incidence map-from-zero-one-csv))
-  ;         ice-berg-concepts (obtain-iceberg-concepts ctx 0.9)
-  ;         ]
-  ;        (println (.getName file))
-  ;        (println "ice-berg-intents of " (.getName file) " from here" ice-berg-concepts)
-  ;        (save-iceberg-concepts-to-file ice-berg-concepts concepts-save-path (str (filename-without-extension (.getName file)) ".edn"))
-  ;        (println "ice-berg-intents of " (.getName file) " from file" (load-iceberg-concepts-from-file concepts-save-path (str (.getName file) ".edn")))
-  ;     )
-  ;   (catch Exception e (str "caught exception: " (.getMessage e)))
-  ;   )
-  ; )
-;)
-
-
-;; Example usage:
-; (def data
-;  [ [ [#{:doc1 :doc2 :doc4} #{:topic_15 :topic_13}]
-;      [#{:doc3 :doc5} #{:topic_11}] ]
-;    [ [#{:doc2 :doc6} #{:topic_14 :topic_13}]
-;      [#{:doc4} #{:topic_12}] ]
-;    [ [#{:doc_0 :doc_1} #{:topic_55}] ]
-;    [ [#{:doc_2 :doc_6} #{}] ]
-;   ])
-;(def result (build-incidence-over-multiple-directories data))
-;(def incidence-matrix (:incidence-matrix result))
-;(def topic-map (:topic-map result))
-;(println "data" data)
-;(println "incidence-matrix" incidence-matrix)
-;(println "topic-map" topic-map)
-
-
-
-
-;(let [path2csv-files "/Users/klara/Downloads/top-per-dir/01_23_25/"
-;      concepts-save-path "/Users/klara/Developer/Uni/WiSe2425/clj_exploration_leaks/results/fca-dir-concepts/"
-;      data []
-;      seq-instances-map (load-instances-from-dir concepts-save-path)
-;      updated-data (into data (:instances seq-instances-map))
-;      list-of-file-dir-names (:filenames seq-instances-map)
-;      result (build-incidence-over-multiple-directories updated-data)
-;      incidence-matrix (:incidence-matrix result)
-;      topic-map (:topic-map result)
-;      ]
-;  (println "filenames" list-of-file-dir-names)
-;  (println "updated-data" updated-data)
-;  (println "incidence-matrix" incidence-matrix)
-;  (println "topic-map" topic-map)
-;  (write-across-dir-topic-incidence-csv (truncate-before-underscore list-of-file-dir-names) incidence-matrix topic-map "/Users/klara/Developer/Uni/WiSe2425/clj_exploration_leaks/results/fca-dir-concepts/across-dir/across-dir-incidence-matrix.csv")
-;  (println "all done")
-;  (subdir-topic-inc2ctx-csv concepts-save-path "/Users/klara/Developer/Uni/WiSe2425/clj_exploration_leaks/results/fca-dir-concepts/across-dir/")
-;  )
-
-;(let [path2csv-files "/Users/klara/Downloads/top-per-dir-24-01-25/"
-;      concepts-save-path "/Users/klara/Developer/Uni/WiSe2425/clj_exploration_leaks/results/fca-dir-concepts/"
-;      output-save-path "/Users/klara/Developer/Uni/WiSe2425/clj_exploration_leaks/results/fca-dir-concepts/across-dir/"
-;      across-dir-ctx (csv2ctx/zero-one-csv2-map (str output-save-path "across-dir-incidence-matrix.csv"))
-;      objects (:objects across-dir-ctx)
-;      attributes (:attributes across-dir-ctx)
-;      incidence (:incidence across-dir-ctx)
-;      ctx (contexts/make-context-from-matrix objects attributes incidence)
-;      ]
-;  ;; create csv file containing incidence matrix of subdirectories and topics
-;    (subdir-topic-inc2ctx-csv path2csv-files concepts-save-path output-save-path)
-
-  ;; display context
-  ;  (println "across-dir-ctx" across-dir-ctx)
-  ;  (csv2ctx/display-bin-ctx across-dir-ctx)
-  ;  (println "objects" objects)
-  ;  (println "attributes" attributes)
-  ;  (println "incidence" incidence)
-  ;  (csv2ctx/compute-titanic-iceberg-lattice ctx)
-  ;)
