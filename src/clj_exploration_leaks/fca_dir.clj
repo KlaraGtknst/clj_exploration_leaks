@@ -120,7 +120,6 @@
                                                Long/MIN_VALUE)  ; Fallback if no date is found
                                         files))))]
      ; Process only the newest files
-     (println "files" files)
      (doseq [file files]
        (try
          (let [map-from-zero-one-csv (csv2ctx/zero-one-csv2-map (.getAbsolutePath file))
@@ -184,11 +183,10 @@
        instance))
 
 (defn load-instances-from-dir
-  "Loads instances from all EDN files in the specified directory.
+  "Loads instances from all EDN files in the specified directory, keeping only the newest versions.
 
-  This function reads each EDN file in the directory, parses its content, and converts it into an
-  instance structure using the `parse-instance` function. Additionally, it collects the filenames
-  (excluding the '.edn' file extension) corresponding to the instances.
+  Filters EDN files based on dates in their filenames, ensuring only the latest file for each base name
+  is processed. Parses the content and converts it into an instance structure.
 
   Parameters:
   - dir-path: A string representing the path to the directory containing EDN files.
@@ -198,22 +196,27 @@
   - :instances: A vector of parsed instances, where each instance is the result of `parse-instance`.
   - :filenames: A vector of filenames (without the '.edn' extension), ordered to correspond to the instances."
   [dir-path]
-  ;; Get all files in the directory with a ".edn" extension, but not in subdirectories
   (let [edn-files (->> (.listFiles (io/file dir-path))
-                       ;; Filter only the files ending with ".edn" & are files
-                        (filter #(and (.isFile %) (.endsWith (.getName %) ".edn"))))]
-    ;; Process the files and return the parsed instances along with their filenames
+                       (filter #(and (.isFile %) (.endsWith (.getName %) ".edn")))) ; Filter EDN files
+        newest-files (->> edn-files
+                          (group-by #(-> (.getName %)
+                                         (clojure.string/replace #"_\d{2}_\d{2}_\d{2}\.edn$" "")
+                                         (clojure.string/lower-case))) ; Group by base filename
+                          (map (fn [[_ files]]
+                                 (apply max-key #(or (some-> (extract-date-from-filename (.getName %))
+                                                             .getTime)
+                                                     Long/MIN_VALUE)
+                                          files))))]
+    ;; Process the newest files
     (reduce (fn [acc file]
               (let [content (edn/read-string (slurp file))  ; Read and parse EDN content
                     instance (parse-instance content)       ; Parse the content into an instance
                     filename (-> (.getName file)            ; Extract the filename
                                  (clojure.string/replace #"\.edn$" ""))] ; Remove the '.edn' extension
-                ;; Add the parsed instance and filename to the accumulators
                 {:instances (conj (:instances acc) instance)
                  :filenames (conj (:filenames acc) filename)}))
-            ;; Initialize the accumulator with empty vectors
             {:instances [] :filenames []}
-            edn-files)))
+            newest-files)))
 
 (defn write-across-dir-topic-incidence-csv
   "Creates a CSV file from directory names, incidence matrix, and topic map.
