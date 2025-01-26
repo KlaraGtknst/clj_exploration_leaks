@@ -140,7 +140,7 @@
   Parameters:
   - path2root-dir: The path to the directory containing the csv files.
   - concepts-save-path: The path to the directory where the iceberg concepts will be saved.
-  - min-sup: Minimal support threshold for iceberg concepts.
+  - min-sup: Minimal support threshold for iceberg concepts. If not provided, the default value is 0.9.
 
   Returns: -
   "
@@ -269,13 +269,15 @@
 
 (defn subdir-topic-inc2ctx-csv
   "This is the function that combines the previous functions to create a context from a directory of incidences of subdirectories and topics.
-  The output-save-path is the path where the context will be saved as a csv file (should end with /, thus, not containing filename.
+  The output-save-path is the path where the context will be saved as a csv file (should end with /, thus, not containing filename).
 
   Parameters:
   - input-path: The path to the directory containing the incidence matrices.
   - concepts-save-path: The path to the directory where the iceberg concepts will be saved.
-  - output-save-path: The path to the directory where the dir-topic context across the directories will be saved as a csv file."
-  [^String input-path ^String concepts-save-path ^String output-save-path]
+  - output-save-path: The path to the directory where the dir-topic context across the directories will be saved as a csv file.
+  - save-filename: The name of the file where the context will be saved excluding `.csv`.
+    If not provided, the default name is `across-dir-incidence-matrix`."
+  ([^String input-path ^String concepts-save-path ^String output-save-path ^String save-filename]
   (_extract-iceberg-concepts-from-csv-bulk input-path concepts-save-path)
   (let [data []
         seq-instances-map (_load-instances-from-dir concepts-save-path)
@@ -285,6 +287,8 @@
         incidence-matrix (:incidence-matrix result)
         topic-map (:topic-map result)
       ]
-  (_write-across-dir-topic-incidence-csv (_truncate-before-underscore list-of-file-dir-names) incidence-matrix topic-map (str output-save-path "across-dir-incidence-matrix.csv"))
-  )
-  )
+  (_write-across-dir-topic-incidence-csv (_truncate-before-underscore list-of-file-dir-names) incidence-matrix topic-map (str output-save-path save-filename ".csv"))
+  ))
+  ([^String input-path ^String concepts-save-path ^String output-save-path]
+   (subdir-topic-inc2ctx-csv input-path concepts-save-path output-save-path "across-dir-incidence-matrix")))
+
