@@ -89,7 +89,7 @@
      :topic-map topic->col}))
 
 
-(defn _extract-date-from-filename [^String filename]
+(defn _extract-date-from-filename [filename]
   "Extracts the date from the filename and parses it into a Date object.
    Assumes the date format is '_MM_dd_yy' (e.g., '_01_26_25')."
   (let [date-regex #"_\d{2}_\d{2}_\d{2}"
@@ -115,8 +115,10 @@
                                    (str/replace #"_\d{2}_\d{2}_\d{2}\.csv" "")
                                    (str/lower-case)))
                     (map (fn [[_ files]]
-                           (apply max-key #(or (_extract-date-from-filename (.getName %))
-                                               (Date.)) files))))]
+                           (apply max-key #(or (some-> (_extract-date-from-filename (.getName %))
+                                                       .getTime)  ; Convert Date to milliseconds
+                                               Long/MIN_VALUE)  ; Fallback if no date is found
+                                        files))))]
      ; Process only the newest files
      (doseq [file files]
        (try
