@@ -12,8 +12,15 @@
            (java.util Date)))
 
 (defn obtain-iceberg-concepts
-  "Returns iceberg concepts from a binary context."
-  [bin-ctx min-support]
+  "Returns iceberg concepts from a binary context.
+
+  Parameters:
+  - bin-ctx: A binary context.
+  - min-support: The minimum support threshold for iceberg concepts.
+
+  Returns:
+  A sequence of iceberg concepts, where each concept is a pair of intent and extent."
+  [bin-ctx ^Float min-support]
   (let [ice-berg-intents  (lattices/titanic-iceberg-intent-seq bin-ctx min-support)
         ice-berg-concepts (map #(vector (contexts/attribute-derivation bin-ctx %) %) ice-berg-intents)]
     ice-berg-concepts)
@@ -21,8 +28,13 @@
 
 (defn save-iceberg-concepts-to-file
   "Saves iceberg concepts to edn file.
-  If the file name contains 'translated', the file is saved in a subdirectory 'translated'."
-  [ice-berg-concepts file-path file-name]
+  If the file name contains 'translated', the file is saved in a subdirectory 'translated'.
+
+  Parameters:
+  - ice-berg-concepts: A sequence of iceberg concepts.
+  - file-path: The path to the directory where the file will be saved.
+  - file-name: The name of the file."
+  [ice-berg-concepts ^String file-path ^String file-name]
   (let [target-path (if (.contains file-name "translated")
                         (str file-path "translated/")
                         file-path)]
@@ -30,15 +42,29 @@
 )
          
 (defn load-iceberg-concepts-from-file
-  "Loads iceberg concepts from edn file."
-  [file-path file-name]
+  "Loads iceberg concepts from edn file.
+
+  Parameters:
+  - file-path: The path to the directory where the file is saved.
+  - file-name: The name of the file.
+
+  Returns:
+  A sequence of iceberg concepts."
+  [^String file-path ^String file-name]
   (edn/read-string (slurp (str file-path file-name))) ; reads data from edn file
  )
 
 
 (defn filename-without-extension
-  "Returns the filename without extension."
-  [filename]
+  "Returns the filename without extension.
+
+  Parameters:
+  - filename: The name of the file.
+
+  Returns:
+  The filename without extension.
+  "
+  [^String filename]
   (let [parts (str/split filename #"\.")]
     (if (> (count parts) 1)
       (str/join "." (butlast parts))
@@ -89,9 +115,16 @@
      :topic-map topic->col}))
 
 
-(defn _extract-date-from-filename [filename]
+(defn _extract-date-from-filename
   "Extracts the date from the filename and parses it into a Date object.
-   Assumes the date format is '_MM_dd_yy' (e.g., '_01_26_25')."
+   Assumes the date format is '_MM_dd_yy' (e.g., '_01_26_25').
+
+   Parameters:
+   - filename: The name of the file.
+
+   Returns:
+   A Date object representing the extracted date, or nil if no date is found."
+  [^String filename]
   (let [date-regex #"_\d{2}_\d{2}_\d{2}"
         date-str (re-find date-regex filename)]
     (when date-str
@@ -102,7 +135,15 @@
   "This method extracts and saves concepts from a directory of csv files.
   Each csv file is a binary context.
   An iceberg concept is a pair of intent and extent,
-  where each attribute set (intent) belongs to the most frequent ones in the context."
+  where each attribute set (intent) belongs to the most frequent ones in the context.
+
+  Parameters:
+  - path2root-dir: The path to the directory containing the csv files.
+  - concepts-save-path: The path to the directory where the iceberg concepts will be saved.
+  - min-sup: Minimal support threshold for iceberg concepts.
+
+  Returns: -
+  "
   ([^String path2root-dir ^String concepts-save-path ^Float min-sup]
 
    ; Collect and deduplicate files by keeping only the newest version based on filename date
@@ -154,7 +195,7 @@
   A map containing:
   - :instances: A vector of parsed instances, where each instance is the result of `parse-instance`.
   - :filenames: A vector of filenames (without the '.edn' extension), ordered to correspond to the instances."
-  [dir-path]
+  [^String dir-path]
   (let [edn-files (->> (.listFiles (io/file dir-path))
                        (filter #(and (.isFile %) (.endsWith (.getName %) ".edn")))) ; Filter EDN files
         newest-files (->> edn-files
@@ -189,7 +230,7 @@
 
   Output:
   - Writes the CSV file to the specified output path."
-  [dir-names incidence-matrix topic-map output-path]
+  [dir-names incidence-matrix topic-map ^String output-path]
   ;; Generate the CSV data
   (let [topics (->> topic-map
                     (sort-by val)         ; Sort topics by their column indices
@@ -225,8 +266,13 @@
 
 (defn subdir-topic-inc2ctx-csv
   "This is the function that combines the previous functions to create a context from a directory of incidences of subdirectories and topics.
-  The output-save-path is the path where the context will be saved as a csv file (should end with /, thus, not containing filename."
-  [input-path concepts-save-path output-save-path]
+  The output-save-path is the path where the context will be saved as a csv file (should end with /, thus, not containing filename.
+
+  Parameters:
+  - input-path: The path to the directory containing the incidence matrices.
+  - concepts-save-path: The path to the directory where the iceberg concepts will be saved.
+  - output-save-path: The path to the directory where the dir-topic context across the directories will be saved as a csv file."
+  [^String input-path ^String concepts-save-path ^String output-save-path]
   (extract-iceberg-concepts-from-csv-bulk input-path concepts-save-path)
   (let [data []
         seq-instances-map (load-instances-from-dir concepts-save-path)
