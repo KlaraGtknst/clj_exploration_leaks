@@ -135,47 +135,6 @@
   ([^String path2root-dir ^String concepts-save-path]
    (extract-iceberg-concepts-from-csv-bulk path2root-dir concepts-save-path 0.9)))
 
-
-;(let [path2csv-files "/Users/klara/Downloads/top-per-dir/01_23_25/"
-;      concepts-save-path "/Users/klara/Developer/Uni/WiSe2425/clj_exploration_leaks/results/fca-dir-concepts/"]
- ; iterate over all csv files in directory with function
-  ;(extract-iceberg-concepts-from-csv-bulk path2csv-files concepts-save-path)
-
-  ; iterate over all csv files in directory manually
-  ; (doseq [file (file-seq (io/file path2csv-files))
-  ;         :when (.endsWith (.getName file) ".csv")]
-  ;   (try
-  ;   (let [map-from-zero-one-csv (csv2ctx/zero-one-csv2-map (.getAbsolutePath file))
-  ;         ctx (contexts/make-context-from-matrix (:objects map-from-zero-one-csv) (:attributes map-from-zero-one-csv) (:incidence map-from-zero-one-csv))
-  ;         ice-berg-concepts (obtain-iceberg-concepts ctx 0.9)
-  ;         ]
-  ;        (println (.getName file))
-  ;        (println "ice-berg-intents of " (.getName file) " from here" ice-berg-concepts)
-  ;        (save-iceberg-concepts-to-file ice-berg-concepts concepts-save-path (str (filename-without-extension (.getName file)) ".edn"))
-  ;        (println "ice-berg-intents of " (.getName file) " from file" (load-iceberg-concepts-from-file concepts-save-path (str (.getName file) ".edn")))
-  ;     )
-  ;   (catch Exception e (str "caught exception: " (.getMessage e)))
-  ;   )
-  ; )
-;)
-
-
-;; Example usage:
-; (def data
-;  [ [ [#{:doc1 :doc2 :doc4} #{:topic_15 :topic_13}]
-;      [#{:doc3 :doc5} #{:topic_11}] ]
-;    [ [#{:doc2 :doc6} #{:topic_14 :topic_13}]
-;      [#{:doc4} #{:topic_12}] ]
-;    [ [#{:doc_0 :doc_1} #{:topic_55}] ]
-;    [ [#{:doc_2 :doc_6} #{}] ]
-;   ])
-;(def result (build-incidence-over-multiple-directories data))
-;(def incidence-matrix (:incidence-matrix result))
-;(def topic-map (:topic-map result))
-;(println "data" data)
-;(println "incidence-matrix" incidence-matrix)
-;(println "topic-map" topic-map)
-
 (defn parse-instance [instance]
   ;; Convert strings to keywords in docs and topics
   (mapv (fn [[docs topics]]
@@ -280,6 +239,49 @@
   (write-across-dir-topic-incidence-csv (truncate-before-underscore list-of-file-dir-names) incidence-matrix topic-map (str output-save-path "across-dir-incidence-matrix.csv"))
   )
   )
+
+
+
+;(let [path2csv-files "/Users/klara/Downloads/top-per-dir/01_23_25/"
+;      concepts-save-path "/Users/klara/Developer/Uni/WiSe2425/clj_exploration_leaks/results/fca-dir-concepts/"]
+ ; iterate over all csv files in directory with function
+  ;(extract-iceberg-concepts-from-csv-bulk path2csv-files concepts-save-path)
+
+  ; iterate over all csv files in directory manually
+  ; (doseq [file (file-seq (io/file path2csv-files))
+  ;         :when (.endsWith (.getName file) ".csv")]
+  ;   (try
+  ;   (let [map-from-zero-one-csv (csv2ctx/zero-one-csv2-map (.getAbsolutePath file))
+  ;         ctx (contexts/make-context-from-matrix (:objects map-from-zero-one-csv) (:attributes map-from-zero-one-csv) (:incidence map-from-zero-one-csv))
+  ;         ice-berg-concepts (obtain-iceberg-concepts ctx 0.9)
+  ;         ]
+  ;        (println (.getName file))
+  ;        (println "ice-berg-intents of " (.getName file) " from here" ice-berg-concepts)
+  ;        (save-iceberg-concepts-to-file ice-berg-concepts concepts-save-path (str (filename-without-extension (.getName file)) ".edn"))
+  ;        (println "ice-berg-intents of " (.getName file) " from file" (load-iceberg-concepts-from-file concepts-save-path (str (.getName file) ".edn")))
+  ;     )
+  ;   (catch Exception e (str "caught exception: " (.getMessage e)))
+  ;   )
+  ; )
+;)
+
+
+;; Example usage:
+; (def data
+;  [ [ [#{:doc1 :doc2 :doc4} #{:topic_15 :topic_13}]
+;      [#{:doc3 :doc5} #{:topic_11}] ]
+;    [ [#{:doc2 :doc6} #{:topic_14 :topic_13}]
+;      [#{:doc4} #{:topic_12}] ]
+;    [ [#{:doc_0 :doc_1} #{:topic_55}] ]
+;    [ [#{:doc_2 :doc_6} #{}] ]
+;   ])
+;(def result (build-incidence-over-multiple-directories data))
+;(def incidence-matrix (:incidence-matrix result))
+;(def topic-map (:topic-map result))
+;(println "data" data)
+;(println "incidence-matrix" incidence-matrix)
+;(println "topic-map" topic-map)
+
 
 
 
