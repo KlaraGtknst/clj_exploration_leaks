@@ -7,7 +7,9 @@
             [clojure.edn :as edn]
             [clojure.string :as str]
             [clojure.set :as set]
-            ))
+            )
+  (:import (java.text SimpleDateFormat)
+           (java.util Date)))
 
 (defn obtain-iceberg-concepts
   "Returns iceberg concepts from a binary context."
@@ -87,35 +89,49 @@
      :topic-map topic->col}))
 
 
+(defn _extract-date-from-filename [^String filename]
+  "Extracts the date from the filename and parses it into a Date object.
+   Assumes the date format is '_MM_dd_yy' (e.g., '_01_26_25')."
+  (let [date-regex #"_\d{2}_\d{2}_\d{2}"
+        date-str (re-find date-regex filename)]
+    (when date-str
+      (let [date-format (SimpleDateFormat. "_MM_dd_yy")]
+        (.parse date-format date-str)))))
 
 (defn extract-iceberg-concepts-from-csv-bulk
   "This method extracts and saves concepts from a directory of csv files.
   Each csv file is a binary context.
-  A iceberg concept is a pair of intent and extent,
+  An iceberg concept is a pair of intent and extent,
   where each attribute set (intent) belongs to the most frequent ones in the context."
   ([^String path2root-dir ^String concepts-save-path ^Float min-sup]
 
-  ; iterate over all csv files in directory
-   (doseq [file (file-seq (io/file path2root-dir))
-           :when (and (.endsWith (.getName file) ".csv")
-                      (.contains (.getName file) "thres")   ; only thresholded incidence matrices
-                      (not (.contains (.getName file) "term")) ; exclude term-topic incidence matrices
-                      (not (.contains (.getName file) "translated")))] ; exclude translated files (doc has title name)
-     (try
-       (let [map-from-zero-one-csv (csv2ctx/zero-one-csv2-map (.getAbsolutePath file))
-             ctx (contexts/make-context-from-matrix (:objects map-from-zero-one-csv) (:attributes map-from-zero-one-csv) (:incidence map-from-zero-one-csv))
-             ice-berg-concepts (obtain-iceberg-concepts ctx min-sup)
-             save-concepts-file-name (str (filename-without-extension (.getName file)) ".edn")
-             ]
-            (save-iceberg-concepts-to-file ice-berg-concepts concepts-save-path save-concepts-file-name)
-         )
-     (catch Exception e (str "caught exception on file " (.getName file) ": " (.getMessage e)))
-     )
-   ))
-  ([^String path2root-dir ^String concepts-save-path]
-   (extract-iceberg-concepts-from-csv-bulk path2root-dir concepts-save-path 0.9)
+   ; Collect and deduplicate files by keeping only the newest version based on filename date
+   (let [files (->> (file-seq (io/file path2root-dir))
+                    (filter #(and (.endsWith (.getName %) ".csv")
+                                  (.contains (.getName %) "thres")  ; only thresholded incidence matrices
+                                  (not (.contains (.getName %) "term"))  ; exclude term-topic incidence matrices
+                                  (not (.contains (.getName %) "translated")))) ; exclude translated files
+                    (group-by #(-> (.getName %)  ; Group files by their base name (without date)
+                                   (str/replace #"_\d{2}_\d{2}_\d{2}\.csv" "")
+                                   (str/lower-case)))
+                    (map (fn [[_ files]]
+                           (apply max-key #(or (_extract-date-from-filename (.getName %))
+                                               (Date.)) files))))]
+     ; Process only the newest files
+     (doseq [file files]
+       (try
+         (let [map-from-zero-one-csv (csv2ctx/zero-one-csv2-map (.getAbsolutePath file))
+               ctx (contexts/make-context-from-matrix (:objects map-from-zero-one-csv)
+                                                      (:attributes map-from-zero-one-csv)
+                                                      (:incidence map-from-zero-one-csv))
+               ice-berg-concepts (obtain-iceberg-concepts ctx min-sup)
+               save-concepts-file-name (str (filename-without-extension (.getName file)) ".edn")]
+           (save-iceberg-concepts-to-file ice-berg-concepts concepts-save-path save-concepts-file-name))
+         (catch Exception e
+           (str "caught exception on file " (.getName file) ": " (.getMessage e))))))
    )
-)
+  ([^String path2root-dir ^String concepts-save-path]
+   (extract-iceberg-concepts-from-csv-bulk path2root-dir concepts-save-path 0.9)))
 
 
 ;(let [path2csv-files "/Users/klara/Downloads/top-per-dir/01_23_25/"
