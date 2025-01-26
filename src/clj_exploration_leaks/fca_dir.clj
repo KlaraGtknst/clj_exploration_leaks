@@ -14,7 +14,7 @@
 (defn obtain-iceberg-concepts
   "Returns iceberg concepts from a binary context."
   [bin-ctx min-support]
-  (let [ice-berg-intents  (lattices/titanic-iceberg-intent-seq bin-ctx 0.8)
+  (let [ice-berg-intents  (lattices/titanic-iceberg-intent-seq bin-ctx min-support)
         ice-berg-concepts (map #(vector (contexts/attribute-derivation bin-ctx %) %) ice-berg-intents)]
     ice-berg-concepts)
   )
