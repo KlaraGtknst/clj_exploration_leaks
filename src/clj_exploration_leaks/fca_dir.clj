@@ -203,7 +203,7 @@
                                          (clojure.string/replace #"_\d{2}_\d{2}_\d{2}\.edn$" "")
                                          (clojure.string/lower-case))) ; Group by base filename
                           (map (fn [[_ files]]
-                                 (apply max-key #(or (some-> (extract-date-from-filename (.getName %))
+                                 (apply max-key #(or (some-> (_extract-date-from-filename (.getName %))
                                                              .getTime)
                                                      Long/MIN_VALUE)
                                           files))))]
