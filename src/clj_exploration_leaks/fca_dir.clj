@@ -6,10 +6,8 @@
             [conexp.fca.lattices :as lattices]
             [clojure.edn :as edn]
             [clojure.string :as str]
-            [clojure.set :as set]
             )
-  (:import (java.text SimpleDateFormat)
-           (java.util Date)))
+  (:import (java.text SimpleDateFormat)))
 
 (defn obtain-iceberg-concepts
   "Returns iceberg concepts from a binary context.
