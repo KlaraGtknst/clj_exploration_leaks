@@ -79,7 +79,7 @@
 
 
   ; create dir-topic context across multiple directories
-  (let [path2csv-files "/norgay/bigstore/kgu/dev/text_topic/results/fca/01_27_25/"
+  (let [path2csv-files "/norgay/bigstore/kgu/dev/text_topic/results/fca/01_28_25/"
         concepts-save-path "/norgay/bigstore/kgu/dev/clj_exploration_leaks/results/fca-dir-concepts/"
         output-save-path "/norgay/bigstore/kgu/dev/clj_exploration_leaks/results/fca-dir-concepts/across-dir/"
         across-dir-ctx (csv2ctx/zero-one-csv2-map (str output-save-path "across-dir-incidence-matrix.csv"))
