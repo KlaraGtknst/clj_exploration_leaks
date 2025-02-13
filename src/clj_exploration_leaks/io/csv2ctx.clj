@@ -4,10 +4,14 @@
             [conexp.fca.contexts :as contexts]
             [conexp.fca.lattices :as lattices]
             [conexp.gui.draw :as draw]
-            [conexp.io.contexts :as io-context]
             ))
 
-;; this file provides methods to cast a csv file to a context object & display it using the library conexp-clj
+;; this file provides methods to work with contexts
+;; Functionalities include:
+;; - casting a (zero-one) csv file to a context object
+;; - display context using the library conexp-clj
+;; - compute (iceberg) concept lattice
+;; - update incidence matrix based on attribute and objects (subsets)
 
 (defn extract-obj-attr-inc
   "Extracts the header (attributes), first column (objects) and other rows (incidence)
@@ -17,16 +21,16 @@
     (if (.exists file-instance)               ; Check if the input file exists
       (with-open [reader (io/reader filepath)]
         (let [data (doall (csv/read-csv reader))]
-          (let [header (first data)                     ;; Get the header
-                first-column (map first (rest data))   ;; Extract the first column
-                other-rows (apply concat (rest (map vec data)))]  ;; Flatten remaining rows; rest returns all but first row
+          (let [header (first data)                     ; Get the header
+                first-column (map first (rest data))   ; Extract the first column
+                other-rows (apply concat (rest (map vec data)))]  ; Flatten remaining rows; rest returns all but first row
             {:objects first-column
              :attributes header
-             :incidence other-rows})))  ;; Return as a map
+             :incidence other-rows})))  ; Return as a map
 
       (do
         (println "File not found!")
-        nil))))  ;; Return nil if the file is not found
+        nil))))  ; Return nil if the file is not found
 
 
 (defn extract-obj-attr-inc-binary
@@ -62,11 +66,11 @@
                                         unique-attributes))]; collection of attributes, whose elements are mapped to function values
             {:objects first-column
              :attributes unique-attributes
-             :incidence (apply concat incidence-matrix) })))  ;; Return as a map
+             :incidence (apply concat incidence-matrix) })))  ; Return as a map
 
       (do
         (println "File not found!")
-        nil)))))  ;; Return nil if the file is not found
+        nil)))))  ; Return nil if the file is not found
 
   ([^String filepath]
    (let [file-instance (io/file filepath)]  ; Cast to file object
@@ -88,7 +92,7 @@
 
 
 (defn display-bin-ctx
-  "Method displays binary contexts in form of a table.
+  "Method displays binary contexts in form of a cross table.
   Functionality used from conexp.fca.contexts.
   If input contains multiple binary contexts, it should be of type clojure.lang.LazySeq.
   If input contains only one binary context, it should be of type clojure.lang.PersistentArrayMap."
@@ -97,17 +101,23 @@
      ;; bin-ctxs-seq is a lazy sequence of binary contexts
      (doseq [bin-ctx bin-ctxs-seq]
        (display-bin-ctx bin-ctx)))
+
     ;; bin-ctxs-seq is only one binary context
      (let [bin-ctx-res (contexts/make-context-from-matrix (:objects bin-ctxs-seq) (:attributes bin-ctxs-seq) (:incidence bin-ctxs-seq))]
         (println bin-ctx-res))))
 
 
 (defn obtain-bin-ctx
+  "Method returns (not displays) binary contexts.
+  Functionality used from conexp.fca.contexts.
+  If input contains multiple binary contexts, it should be of type clojure.lang.LazySeq.
+  If input contains only one binary context, it should be of type clojure.lang.PersistentArrayMap."
   ([bin-ctxs-seq]
    (if (instance? clojure.lang.LazySeq bin-ctxs-seq)
      ;; bin-ctxs-seq is a lazy sequence of binary contexts
      (doseq [bin-ctx bin-ctxs-seq]
        (display-bin-ctx bin-ctx)))
+
    ;; bin-ctxs-seq is only one binary context
    (let [bin-ctx-res (contexts/make-context-from-matrix (:objects bin-ctxs-seq) (:attributes bin-ctxs-seq) (:incidence bin-ctxs-seq))]
      bin-ctx-res)))
@@ -158,23 +168,28 @@
                 position (assoc (nth bin-ctxs-seq position) :incidence (:incidence updated-bin-ctx)))))
 
 (defn display-lattice
+  "Method displays lattice by first printing its atoms and displaying it afterward as a formal context using another application."
   [lattice]
   (println (lattices/lattice-atoms lattice))
   (draw/draw-lattice lattice)
   lattice)
 
 (defn compute-concept-lattice
+  "Computes the concept lattice from a binary context.
+  Instead of returning the lattice, it is displayed."
   [bin-ctx]
   (let [lattice (lattices/concept-lattice bin-ctx)]
     (display-lattice lattice)))
 
 (defn compute-titanic-iceberg-lattice
+  "Computes the iceberg lattice from a binary context.
+  Instead of returning the lattice, it is displayed.
+  The default value for min-support is 0.1.
+  "
   [bin-ctx]
   ;; min-support = relative portion of objects of derivative of intent in total set of objects
   (display-lattice (lattices/iceberg-lattice bin-ctx 0.1))  ; paper: 0.03
   )
-
-
 
 (defn zero-one-csv2-map
   "Extracts attributes (first row) and objects (first column).
@@ -194,39 +209,42 @@
                  incidence-matrix (vec (map #(rest %) all-but-first-row))]; collection of attributes, whose elements are mapped to function values
              {:objects (map #(str "doc_" %) first-column)                         ; documents
               :attributes (map #(str "topic_" %) first-row)                        ; topics
-              :incidence (vec (map #(Integer/parseInt %) (apply concat incidence-matrix)) )})))  ;; Return as a map
+              :incidence (vec (map #(Integer/parseInt %) (apply concat incidence-matrix)) )})))  ; Return as a map
 
        (do
          (println "File not found!")
-         nil)))))  ;; Return nil if the file is not found
+         nil)))))  ; Return nil if the file is not found
 
 
 
 
 
-;; Usage example
-#_(println (extract-obj-attr-inc "results/metadata.csv"))
-#_(println (extract-obj-attr-inc-binary "sample_results/test1510/metadata.csv"))
-#_(println (type (extract-obj-attr-inc-binary "sample_results/test1510/metadata.csv" 2)))
-#_(display-bin-ctx (extract-obj-attr-inc-binary "sample_results/test1510/metadata.csv"))
+;;; Usage example
+;(println (extract-obj-attr-inc "results/metadata.csv"))
+;(println (extract-obj-attr-inc-binary "sample_results/test1510/metadata.csv"))
+;(println (type (extract-obj-attr-inc-binary "sample_results/test1510/metadata.csv" 2)))
+;(display-bin-ctx (extract-obj-attr-inc-binary "sample_results/test1510/metadata.csv"))
 ;(println (extract-obj-attr-inc-binary "sample_results/test1911/metadata.csv" 4))
 ;(println (obtain-bin-ctx (extract-obj-attr-inc-binary "sample_results/test1911/metadata.csv" 4)))
 ;(println (compute-concept-lattice (obtain-bin-ctx (extract-obj-attr-inc-binary "sample_results/test1911/metadata.csv" 4))))
 ;(println "Iceberg")
 ;(println (compute-titanic-iceberg-lattice (obtain-bin-ctx (extract-obj-attr-inc-binary "sample_results/test1911/metadata.csv" 4))))
-
+;
 ;(let [path2uni-data "/Users/klara/Developer/Uni/WiSe2425/text_topic/results/incidences/thres_row_norm_doc_topic_incidence.csv"
 ;      map-from-zero-one-csv (zero-one-csv2-map path2uni-data)
-;      first-n-docs (count (:objects map-from-zero-one-csv)) ; 10 produces at most 18 elements in lattice
+;      first-n-docs 10                                       ; (count (:objects map-from-zero-one-csv)) ; 10 produces at most 18 elements in lattice
 ;      objects (take first-n-docs (:objects map-from-zero-one-csv))
 ;      attributes (:attributes map-from-zero-one-csv)
-;      incidence (take (* first-n-docs 47) (:incidence map-from-zero-one-csv))]
+;      incidence (take (* first-n-docs 47) (:incidence map-from-zero-one-csv))
+;      ctx (contexts/make-context-from-matrix objects attributes incidence)
+;      ]
 ;  (println "Uni Data" (count objects) (count attributes) (first attributes) (count incidence))
-;  ;(println (compute-concept-lattice (contexts/make-context-from-matrix objects attributes incidence)))
-;  (println (compute-titanic-iceberg-lattice (contexts/make-context-from-matrix objects attributes incidence)))
+;  (println (compute-concept-lattice ctx))
+;  (println "All concepts in Lattice:" (contexts/concepts ctx))
+;  (println (compute-titanic-iceberg-lattice ctx))
 ;  )
-
-; test update-incidence: Add 1 to parent if child is included in parent and child has 1 (binary context)
+;
+; ; test update-incidence: Add 1 to parent if child is included in parent and child has 1 (binary context)
 ;(let [data {:objects [".DS_Store" ".Rhistory" ".gitignore"]
 ;            :attributes ["Downloads" "Downloads/dir1" "Downloads/dir1/dir2"]
 ;            :incidence [1 0 0 0 1 0 0 0 1]}]

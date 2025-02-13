@@ -9,5 +9,6 @@
   )
 
 
-#_(let [dir (java.io.File. "sample_results/temp/test123")]
-  (exists_or_create dir))
+;; Example usage:
+;(let [dir (java.io.File. "sample_results/temp/test123")]
+;  (exists_or_create dir))

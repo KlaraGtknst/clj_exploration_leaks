@@ -9,6 +9,11 @@
             )
   (:import (java.text SimpleDateFormat)))
 
+;; This file provides functions regarding a novel functionality which aggregates document-topic concepts across directories.
+;; Some of the functionalities include:
+;; - extract iceberg concepts from a binary context, save it or load it from a file
+;; - helper functions to alter filenames, context content, etc.
+
 (defn _obtain-iceberg-concepts
   "Returns iceberg concepts from a binary context.
 
@@ -69,8 +74,7 @@
       (str/join "." (butlast parts))
       filename)))
 
-;; context of multiple directories
-
+;; directory-topics context across multiple directories
 (defn _build-incidence-over-multiple-directories
   "Builds an incidence matrix over multiple directories, where each directory contains a set of instances
   (objects: documents & attributes: topics).
@@ -114,7 +118,6 @@
      ;; Include the topic-to-column mapping in the result.
      :topic-map topic->col}))
 
-
 (defn _extract-date-from-filename
   "Extracts the date from the filename and parses it into a Date object.
    Assumes the date format is '_MM_dd_yy' (e.g., '_01_26_25').
@@ -146,7 +149,7 @@
   "
   ([^String path2root-dir ^String concepts-save-path ^Float min-sup]
 
-   ; Collect and deduplicate files by keeping only the newest version based on filename date
+   ;; Collect and deduplicate files by keeping only the newest version based on filename date
    (let [files (->> (file-seq (io/file path2root-dir))
                     (filter #(and (.endsWith (.getName %) ".csv")
                                   (.contains (.getName %) "thres")  ; only thresholded incidence matrices
@@ -160,7 +163,7 @@
                                                        .getTime)  ; Convert Date to milliseconds
                                                Long/MIN_VALUE)  ; Fallback if no date is found
                                         files))))]
-     ; Process only the newest files
+     ;; Process only the newest files
      (doseq [file files]
        (try
          (let [map-from-zero-one-csv (csv2ctx/zero-one-csv2-map (.getAbsolutePath file))

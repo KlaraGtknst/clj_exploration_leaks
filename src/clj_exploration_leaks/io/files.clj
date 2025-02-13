@@ -8,20 +8,15 @@
 (defn readFile
   "Returns input of .txt file as string and prints it to IO"
   [filename]
-  (let [content (slurp (io/resource filename))]              ;; let = local binding, def = global variable -> change brackets a bit & omit []
-  (println content)                                         ;; prints content to IO
-  content))                                                 ;; returns content
-
-;(def x (readFile "example.txt"))
+  (let [content (slurp (io/resource filename))]              ; let = local binding, def = global variable -> change brackets a bit & omit []
+  (println content)                                         ; prints content to IO
+  content))                                                 ; returns content
 
 
 (defn writeFile
   "Writes content of Args into a file called 'filename'."
-  [content filename]                                        ;; separate multiple arguments by space
+  [content filename]                                        ; separate multiple arguments by space
   (spit filename content))
-
-;(when x                                                     ;; avoid null pointer exception
-; (writeFile x "newFile.txt"))
 
 
 (defn fileExists
@@ -35,5 +30,10 @@
  (with-open [rdr (io/reader file-path)]
     (edn/read (java.io.PushbackReader. rdr))))
 
+
+;; Example usage:
+;(def x (readFile "example.txt"))
+;(when x                                                     ;; avoid null pointer exception
+;  (writeFile x "newFile.txt"))
 ;(println "the file newFile.txt exists: " (fileExists "newFile.txt"))
 ;(println "the file test.txt exists: " (fileExists "test.txt"))

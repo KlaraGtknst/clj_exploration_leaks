@@ -3,10 +3,11 @@
             [clojure.data.csv :as csv]
             [clojure.java.io :as io]
             [clojure.string :as str]
-    ;[java-time.api :as jt] ; FIXME: dependency resolution error in project.clj
             ))
 
-;; This file provides methods to extract metadata (file type, file path, file size) from all files in a directory (recursively).
+;; This file provides methods to extract metadata (file type, file path, file size)
+;; from all files in a directory (recursively).
+;; The statistics of the metadata are written to a CSV or TXT file.
 
 (defn save2csv
   "Saves data to save_path with name optionally specified.
@@ -22,6 +23,7 @@
 
 
 (defn get-parent-dir
+  "Returns the parent directory of a file."
   [file-instance]
   (let [parent (.getParentFile file-instance)]
   (if (nil? parent)
@@ -39,7 +41,7 @@
   (let [file-instance (java.io.File. target_file_name)]     ; Cast to file object
     (if (.exists file-instance)                                   ; Check if the input file exists
       (let [metadata (for [file-name (file-seq file-instance)]   ; Construct metadata: sequence of maps
-                       ; maps with keys :file_name, :file_path, :parent_dir :len & :type
+                       ;; maps with keys :file_name, :file_path, :parent_dir :len & :type
                        {:file_name (.getName file-name)
                         :file_path (.getAbsolutePath file-name)
                         :parent_dir (get-parent-dir file-name)
@@ -153,8 +155,7 @@ The text-file is saved as output-path. Hence, include the filename with .txt ext
            (csv/write-csv writer [[value count (format "%.2f" percentage)]])))))) ; Data rows
 
 (defn create-column-stats-files
-  "Generates a unique CSV file with statistics for each column in the input CSV.
-  "
+  "Generates a unique CSV file with statistics for each column in the input CSV."
   [stats ^String output-dir]
   ; :key deconstructs a map into its values saved in variables called as the corresponding keys
     (doseq [{:keys [column counts total-count]} stats]      ; iterates over all maps in collection stats
@@ -163,7 +164,7 @@ The text-file is saved as output-path. Hence, include the filename with .txt ext
   true)
 
 
-
+;; Example usage:
 ;(println (find_metadata "src"))
 ;(write-metadata-csv (find_metadata "src"))
 ;(println (get-stats "sample_results/test1510/metadata.csv"))
