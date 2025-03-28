@@ -11,7 +11,6 @@
                  [conexp-clj "2.6.0-java17"]                ; FCA library
                  [clojure-interop/java.io "1.0.5"]
                  [plotly-clj "0.1.1"]                       ; visualization
-                 ;[org.clojure/java-time "1.3.0"] ; FIXME: dependency resolution error
                  ]
   :main ^:skip-aot clj-exploration-leaks.exploration        ; Added to run the main function with lein run
   :repl-options {:init-ns clj-exploration-leaks.core})
